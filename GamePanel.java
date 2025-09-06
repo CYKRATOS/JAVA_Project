@@ -129,6 +129,9 @@ public class GamePanel extends JPanel implements ActionListener {
         inAir = false;
 
         spikes = new ArrayList<>(lvl.getSpikes()); // make mutable copy
+        if (levelIndex == 0) {
+        spikes.clear();
+    }
         spikes.forEach(Spike::reset);
 
         door = new Rectangle(lvl.getDoor());
@@ -155,6 +158,14 @@ public class GamePanel extends JPanel implements ActionListener {
         if (playerY >= groundY) { playerY = groundY; velY = 0; inAir = false; }
 
         Rectangle playerRect = new Rectangle(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
+
+            if (levelIndex == 0 && spikes.isEmpty()) {
+    int triggerDistance = 100; // spawn spike when player is this close to door
+    if (playerX + PLAYER_SIZE >= door.x - triggerDistance) {
+        Spike newSpike = new Spike(door.x - 40, panelHeight - groundHeight - 30, 30, 30, 0); // static spike
+        spikes.add(newSpike);
+    }
+}
 
         // Level 4 dynamic door and obstacle
         if (levelIndex == 3 && !level4Triggered) {
@@ -211,7 +222,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // Spikes
         g2.setColor(Color.RED);
-        for (Spike spike : spikes) g2.fillRect(spike.getRect().x, spike.getRect().y, spike.getRect().width, spike.getRect().height);
+        // Draw spikes using their own draw method
+        for (Spike spike : spikes)
+            spike.draw(g2);
 
         // Door
         g2.setColor(Color.ORANGE);

@@ -1,4 +1,4 @@
-import java.awt.Rectangle;
+import java.awt.*;
 
 public class Spike {
     private final int startX, startY;
@@ -37,5 +37,21 @@ public class Spike {
         rect.x = startX;
         rect.y = startY;
     }
+
+    public void draw(Graphics g) {
+    g.setColor(Color.RED);
+
+    int spikeCount = 3; // number of small triangles
+    int spikeWidth = rect.width / spikeCount;
+    int spikeHeight = rect.height;
+
+    for (int i = 0; i < spikeCount; i++) {
+        int x = rect.x + i * spikeWidth;
+        int[] xPoints = { x, x + spikeWidth / 2, x + spikeWidth };
+        int[] yPoints = { rect.y + spikeHeight, rect.y, rect.y + spikeHeight };
+        g.fillPolygon(xPoints, yPoints, 3);
+    }
+}
+
 }
                 
