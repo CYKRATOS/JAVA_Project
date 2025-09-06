@@ -1,8 +1,12 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class GamePanel extends JPanel implements ActionListener {
@@ -37,9 +41,11 @@ public class GamePanel extends JPanel implements ActionListener {
     private boolean isPaused = false;
     private JButton pauseResumeButton;
 
+    // Background image
+    private BufferedImage backgroundImage;
+
     public GamePanel() {
         setLayout(null); // absolute positioning
-        setBackground(Color.BLACK);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         panelWidth = screenSize.width;
@@ -49,6 +55,13 @@ public class GamePanel extends JPanel implements ActionListener {
         setPreferredSize(screenSize);
 
         levels = Levels.createLevels(panelWidth, panelHeight, groundHeight);
+
+        // Load background image
+        try {
+            backgroundImage = ImageIO.read(new File("E:\\JAVA-PROJECT\\DevilLevelGame\\assets\\1wallpaper.jpg"));
+        } catch (IOException e) {
+            System.out.println("Background image not found, using default color.");
+        }
 
         // Create pause/resume button
         pauseResumeButton = new JButton("Pause");
@@ -72,28 +85,34 @@ public class GamePanel extends JPanel implements ActionListener {
 
         im.put(KeyStroke.getKeyStroke("LEFT"), "left");
         am.put("left", new AbstractAction() {@Override
- public void actionPerformed(ActionEvent e) { velX = -PLAYER_SPEED; } });
+            public void actionPerformed(ActionEvent e) { velX = -PLAYER_SPEED; } });
 
         im.put(KeyStroke.getKeyStroke("RIGHT"), "right");
-        am.put("right", new AbstractAction() {@Override public void actionPerformed(ActionEvent e) { velX = PLAYER_SPEED; } });
+        am.put("right", new AbstractAction() {@Override
+            public void actionPerformed(ActionEvent e) { velX = PLAYER_SPEED; } });
 
         im.put(KeyStroke.getKeyStroke("released LEFT"), "stopLeft");
-        am.put("stopLeft", new AbstractAction() {@Override public void actionPerformed(ActionEvent e) { if (velX < 0) velX = 0; } });
+        am.put("stopLeft", new AbstractAction() {@Override
+            public void actionPerformed(ActionEvent e) { if (velX < 0) velX = 0; } });
 
         im.put(KeyStroke.getKeyStroke("released RIGHT"), "stopRight");
-        am.put("stopRight", new AbstractAction() {@Override public void actionPerformed(ActionEvent e) { if (velX > 0) velX = 0; } });
+        am.put("stopRight", new AbstractAction() {@Override
+            public void actionPerformed(ActionEvent e) { if (velX > 0) velX = 0; } });
 
         im.put(KeyStroke.getKeyStroke("UP"), "jump");
-        am.put("jump", new AbstractAction() {@Override public void actionPerformed(ActionEvent e) { if (!inAir) { velY = JUMP_SPEED; inAir = true; } } });
+        am.put("jump", new AbstractAction() {@Override
+            public void actionPerformed(ActionEvent e) { if (!inAir) { velY = JUMP_SPEED; inAir = true; } } });
 
         im.put(KeyStroke.getKeyStroke("R"), "restart");
-        am.put("restart", new AbstractAction() {@Override public void actionPerformed(ActionEvent e) { 
-            resetLevel(); 
-            gameCompleted = false;
-            level4Triggered = false;
-        } });
+        am.put("restart", new AbstractAction() {@Override
+            public void actionPerformed(ActionEvent e) { 
+                resetLevel(); 
+                gameCompleted = false;
+                level4Triggered = false;
+            } });
     }
 
+    // Add this method so GameLauncher can select a level
     public void setLevelIndex(int index) {
         this.levelIndex = index;
         resetLevel();
@@ -116,9 +135,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // Level 4 obstacle
         if (levelIndex == 3) {
-    // Start fully off-screen right
-    level4Obstacle = new Spike(panelWidth + 30, panelHeight - groundHeight - 30, 30, 30, -5, true);
-}
+            level4Triggered = false;
+            level4Obstacle = new Spike(panelWidth + 30, panelHeight - groundHeight - 30, 30, 30, -5, true);
+        }
     }
 
     @Override
@@ -138,19 +157,16 @@ public class GamePanel extends JPanel implements ActionListener {
         Rectangle playerRect = new Rectangle(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
 
         // Level 4 dynamic door and obstacle
-        // Level 4 dynamic door and obstacle logic inside actionPerformed
-if (levelIndex == 3 && !level4Triggered) {
-    int triggerDistance = (int)(0.1 * (door.x - playerX));
-    if (playerX + PLAYER_SIZE >= door.x - triggerDistance) {
-        // teleport door to left
-        door.x = 100;
-        level4Triggered = true;
-        spikes.add(level4Obstacle); // add moving obstacle
-    }
-}
+        if (levelIndex == 3 && !level4Triggered) {
+            int triggerDistance = (int)(0.1 * (door.x - playerX));
+            if (playerX + PLAYER_SIZE >= door.x - triggerDistance) {
+                door.x = 100; // teleport door to left
+                level4Triggered = true;
+                spikes.add(level4Obstacle); // add moving obstacle
+            }
+        }
 
-
-        // update spikes
+        // Update spikes
         for (Spike spike : spikes) {
             spike.update(panelWidth);
             if (playerRect.intersects(spike.getRect())) {
@@ -179,6 +195,14 @@ if (levelIndex == 3 && !level4Triggered) {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        // Draw background image
+        if (backgroundImage != null) {
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null);
+        } else {
+            setBackground(Color.BLACK);
+        }
+
         Graphics2D g2 = (Graphics2D) g;
 
         // Ground
