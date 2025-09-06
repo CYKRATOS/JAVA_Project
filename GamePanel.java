@@ -194,7 +194,7 @@ if (levelIndex == 3 && !level4Triggered) {
         g2.fillRect(door.x, door.y, door.width, door.height);
 
         // Player
-        g2.setColor(Color.CYAN);
+        g2.setColor(Color.BLUE);
         g2.fillRect(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
 
         // HUD / Game Completed
