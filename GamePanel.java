@@ -37,9 +37,10 @@ public class GamePanel extends JPanel implements ActionListener {
     private boolean level4Triggered = false;
     private Spike level4Obstacle;
 
-    // Pause/Resume
+    // Pause/Resume/Quit
     private boolean isPaused = false;
     private JButton pauseResumeButton;
+    private final JButton quitButton;
 
     // Background image
     private BufferedImage backgroundImage;
@@ -63,7 +64,14 @@ public class GamePanel extends JPanel implements ActionListener {
             System.out.println("Background image not found, using default color.");
         }
 
-        // Create pause/resume button
+        // Quit button
+        quitButton = new JButton("Quit");
+        quitButton.setBounds(panelWidth - 120, 60, 100, 30); // under Pause button
+        quitButton.setFocusable(false);
+        quitButton.addActionListener(e -> System.exit(0));
+        add(quitButton);
+
+        // Pause/Resume button
         pauseResumeButton = new JButton("Pause");
         pauseResumeButton.setBounds(panelWidth - 120, 20, 100, 30);
         pauseResumeButton.addActionListener(e -> {
@@ -85,34 +93,34 @@ public class GamePanel extends JPanel implements ActionListener {
 
         im.put(KeyStroke.getKeyStroke("LEFT"), "left");
         am.put("left", new AbstractAction() {@Override
-            public void actionPerformed(ActionEvent e) { velX = -PLAYER_SPEED; } });
+        public void actionPerformed(ActionEvent e) { velX = -PLAYER_SPEED; } });
 
         im.put(KeyStroke.getKeyStroke("RIGHT"), "right");
         am.put("right", new AbstractAction() {@Override
-            public void actionPerformed(ActionEvent e) { velX = PLAYER_SPEED; } });
+        public void actionPerformed(ActionEvent e) { velX = PLAYER_SPEED; } });
 
         im.put(KeyStroke.getKeyStroke("released LEFT"), "stopLeft");
         am.put("stopLeft", new AbstractAction() {@Override
-            public void actionPerformed(ActionEvent e) { if (velX < 0) velX = 0; } });
+        public void actionPerformed(ActionEvent e) { if (velX < 0) velX = 0; } });
 
         im.put(KeyStroke.getKeyStroke("released RIGHT"), "stopRight");
         am.put("stopRight", new AbstractAction() {@Override
-            public void actionPerformed(ActionEvent e) { if (velX > 0) velX = 0; } });
+        public void actionPerformed(ActionEvent e) { if (velX > 0) velX = 0; } });
 
         im.put(KeyStroke.getKeyStroke("UP"), "jump");
         am.put("jump", new AbstractAction() {@Override
-            public void actionPerformed(ActionEvent e) { if (!inAir) { velY = JUMP_SPEED; inAir = true; } } });
+        public void actionPerformed(ActionEvent e) { if (!inAir) { velY = JUMP_SPEED; inAir = true; } } });
 
         im.put(KeyStroke.getKeyStroke("R"), "restart");
         am.put("restart", new AbstractAction() {@Override
-            public void actionPerformed(ActionEvent e) { 
-                resetLevel(); 
-                gameCompleted = false;
-                level4Triggered = false;
-            } });
+        public void actionPerformed(ActionEvent e) { 
+            resetLevel(); 
+            gameCompleted = false;
+            level4Triggered = false;
+        } });
     }
 
-    // Add this method so GameLauncher can select a level
+    // Allow GameLauncher to select a level
     public void setLevelIndex(int index) {
         this.levelIndex = index;
         resetLevel();
@@ -128,10 +136,10 @@ public class GamePanel extends JPanel implements ActionListener {
         velY = 0;
         inAir = false;
 
-        spikes = new ArrayList<>(lvl.getSpikes()); // make mutable copy
+        spikes = new ArrayList<>(lvl.getSpikes()); // mutable copy
         if (levelIndex == 0) {
-        spikes.clear();
-    }
+            spikes.clear(); // no spikes at start in Level 1
+        }
         spikes.forEach(Spike::reset);
 
         door = new Rectangle(lvl.getDoor());
@@ -159,25 +167,26 @@ public class GamePanel extends JPanel implements ActionListener {
 
         Rectangle playerRect = new Rectangle(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
 
-            if (levelIndex == 0 && spikes.isEmpty()) {
-    int triggerDistance = 100; // spawn spike when player is this close to door
-    if (playerX + PLAYER_SIZE >= door.x - triggerDistance) {
-        Spike newSpike = new Spike(door.x - 40, panelHeight - groundHeight - 30, 30, 30, 0); // static spike
-        spikes.add(newSpike);
-    }
-}
-
-        // Level 4 dynamic door and obstacle
-        if (levelIndex == 3 && !level4Triggered) {
-            int triggerDistance = (int)(0.1 * (door.x - playerX));
+        // Level 1 spike appears only when player approaches door
+        if (levelIndex == 0 && spikes.isEmpty()) {
+            int triggerDistance = 100;
             if (playerX + PLAYER_SIZE >= door.x - triggerDistance) {
-                door.x = 100; // teleport door to left
-                level4Triggered = true;
-                spikes.add(level4Obstacle); // add moving obstacle
+                Spike newSpike = new Spike(door.x - 40, panelHeight - groundHeight - 30, 30, 30, 0);
+                spikes.add(newSpike);
             }
         }
 
-        // Update spikes
+        // Level 4 dynamic door + obstacle
+        if (levelIndex == 3 && !level4Triggered) {
+            int triggerDistance = (int)(0.1 * (door.x - playerX));
+            if (playerX + PLAYER_SIZE >= door.x - triggerDistance) {
+                door.x = 100; // teleport door
+                level4Triggered = true;
+                spikes.add(level4Obstacle); // moving obstacle
+            }
+        }
+
+        // Spikes update + collision
         for (Spike spike : spikes) {
             spike.update(panelWidth);
             if (playerRect.intersects(spike.getRect())) {
@@ -186,6 +195,7 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         }
 
+        // Door collision
         if (playerRect.intersects(door)) {
             score += 100;
             loadNextLevel();
@@ -207,22 +217,22 @@ public class GamePanel extends JPanel implements ActionListener {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // Draw background image
+        // Background
         if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null);
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         } else {
             setBackground(Color.BLACK);
         }
 
         Graphics2D g2 = (Graphics2D) g;
 
-        // Ground
+        // Ground as thick line
         g2.setColor(Color.GREEN);
-        g2.fillRect(0, panelHeight - groundHeight, panelWidth, groundHeight);
+        g2.setStroke(new BasicStroke(10));
+        g2.drawLine(0, getHeight() - 144, getWidth(), getHeight() - 144);
 
         // Spikes
         g2.setColor(Color.RED);
-        // Draw spikes using their own draw method
         for (Spike spike : spikes)
             spike.draw(g2);
 
@@ -234,7 +244,7 @@ public class GamePanel extends JPanel implements ActionListener {
         g2.setColor(Color.BLUE);
         g2.fillRect(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
 
-        // HUD / Game Completed
+        // HUD
         g2.setColor(Color.WHITE);
         if (gameCompleted) {
             g2.setFont(new Font("Arial", Font.BOLD, 50));
