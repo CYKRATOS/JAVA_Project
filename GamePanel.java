@@ -11,13 +11,13 @@ import javax.swing.*;
 
 public class GamePanel extends JPanel implements ActionListener {
     // Constants
-    private static final int PLAYER_SIZE = 30;
+    private static final int PLAYER_SIZE = 80;
     private static final int PLAYER_SPEED = 5;
     private static final int JUMP_SPEED = -20;
     private static final int GRAVITY = 1;
 
     private final Timer timer;
-    private int playerX, playerY;
+    private int playerX = 100, playerY = 100;
     private int velX, velY;
     private boolean inAir;
 
@@ -44,6 +44,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     // Background image
     private BufferedImage backgroundImage;
+    private BufferedImage playerImage;
 
     public GamePanel() {
         setLayout(null); // absolute positioning
@@ -60,6 +61,7 @@ public class GamePanel extends JPanel implements ActionListener {
         // Load background image
         try {
             backgroundImage = ImageIO.read(new File("E:\\JAVA-PROJECT\\DevilLevelGame\\assets\\1wallpaper.jpg"));
+            playerImage = ImageIO.read(new File("E:\\JAVA-PROJECT\\DevilLevelGame\\assets\\char.png"));
         } catch (IOException e) {
             System.out.println("Background image not found, using default color.");
         }
@@ -240,9 +242,14 @@ public class GamePanel extends JPanel implements ActionListener {
         g2.setColor(Color.ORANGE);
         g2.fillRect(door.x, door.y, door.width, door.height);
 
-        // Player
-        g2.setColor(Color.BLUE);
-        g2.fillRect(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
+
+        //Player Design
+        if (playerImage != null) {
+            g2.drawImage(playerImage, playerX, playerY, PLAYER_SIZE, PLAYER_SIZE, this);
+        } else {
+            // Fallback (if image not loaded)
+            g2.fillRect(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
+        }
 
         // HUD
         g2.setColor(Color.WHITE);
