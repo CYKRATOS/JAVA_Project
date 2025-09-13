@@ -48,7 +48,7 @@ public class GamePanel extends JPanel implements ActionListener {
     private BufferedImage backgroundImage;
     private BufferedImage playerImage;
 
-    public GamePanel() {
+    public GamePanel(int playerId) {
         setLayout(null); // absolute positioning
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();

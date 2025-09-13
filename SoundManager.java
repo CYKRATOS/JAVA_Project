@@ -4,8 +4,7 @@ import javax.sound.sampled.*;
 
 public class SoundManager {
 
-    private Clip clip;          // For sound effects
-    private Clip musicClip;     // For background music
+    private Clip musicClip;
 
     // --- Play WAV effect (jump, death, door) ---
     public void playSound(String filePath) {
@@ -20,8 +19,7 @@ public class SoundManager {
             Clip tempClip = AudioSystem.getClip();
             tempClip.open(audioStream);
             tempClip.start();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
         }
     }
 
@@ -42,7 +40,6 @@ public class SoundManager {
             musicClip.loop(Clip.LOOP_CONTINUOUSLY); // loop music
             musicClip.start();
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-            e.printStackTrace();
         }
     }
 
