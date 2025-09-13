@@ -25,7 +25,7 @@ package com.mysql.cj.callback;
  */
 public class UsernameCallback implements MysqlCallback {
 
-    private String username;
+    private final String username;
 
     public UsernameCallback(String username) {
         this.username = username;

@@ -34,14 +34,14 @@ import java.util.List;
 public class WebAuthnAuthenticationCallback implements MysqlCallback {
 
     // FIDO inputs.
-    private byte[] clientDataHash;
-    private String relyingPartyId;
-    private byte[] credentialId;
+    private final byte[] clientDataHash;
+    private final String relyingPartyId;
+    private final byte[] credentialId;
 
     // FIDO outputs.
     private boolean supportsCredentialManagement;
-    private List<byte[]> authenticatorDataEntries;
-    private List<byte[]> signatureEntries;
+    private final List<byte[]> authenticatorDataEntries;
+    private final List<byte[]> signatureEntries;
 
     /**
      * Instances of this object are used to exchange FIDO data between the client application and the driver and are responsible for managing all the
