@@ -1,10 +1,11 @@
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class LoginPanel extends JPanel {
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JButton loginButton, signupButton;
+    private final JButton loginButton;
+    private final JButton signupButton;
 
     public LoginPanel(JFrame frame) {
         setLayout(new GridBagLayout());
