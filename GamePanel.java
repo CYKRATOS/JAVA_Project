@@ -116,7 +116,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 if (!inAir) {
                     velY = JUMP_SPEED;
                     inAir = true;
-                    soundManager.playSound("E:\JAVA-PROJECT\DevilLevelGame\assets\jump.wav");
+                    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/jump.wav");
                 }
             }
         });
