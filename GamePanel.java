@@ -1,4 +1,11 @@
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -6,8 +13,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.Timer;
 
 public class GamePanel extends JPanel implements ActionListener {
     // Constants
@@ -62,7 +76,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // Load background + player image
         try {
-            backgroundImage = ImageIO.read(new File("E:\\JAVA-PROJECT\\DevilLevelGame\\assets\\1wallpaper.jpg"));
+            backgroundImage = ImageIO.read(new File("E:\\JAVA-PROJECT\\DevilLevelGame\\assets\\1759383659033.jpeg"));
             playerImage = ImageIO.read(new File("E:\\JAVA-PROJECT\\DevilLevelGame\\assets\\char.png"));
         } catch (IOException e) {
             System.out.println("Images not found, using defaults.");
@@ -102,7 +116,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 if (!inAir) {
                     velY = JUMP_SPEED;
                     inAir = true;
-                    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/jump.wav");
+                    soundManager.playSound("E:\JAVA-PROJECT\DevilLevelGame\assets\jump.wav");
                 }
             }
         });
