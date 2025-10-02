@@ -76,8 +76,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // Load background + player image
         try {
-            backgroundImage = ImageIO.read(new File("E:\\JAVA-PROJECT\\DevilLevelGame\\assets\\1759383659033.jpeg"));
-            playerImage = ImageIO.read(new File("E:\\JAVA-PROJECT\\DevilLevelGame\\assets\\char.png"));
+            backgroundImage = ImageIO.read(new File("assets/1759383659033.jpeg"));
+            playerImage = ImageIO.read(new File("assets/char.png"));
+
         } catch (IOException e) {
             System.out.println("Images not found, using defaults.");
         }
@@ -116,7 +117,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 if (!inAir) {
                     velY = JUMP_SPEED;
                     inAir = true;
-                    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/jump.wav");
+                    soundManager.playSound("assets/jump.wav");
                 }
             }
         });
@@ -174,7 +175,7 @@ public class GamePanel extends JPanel implements ActionListener {
             level4Obstacle = new Spike(panelWidth + 30, panelHeight - groundHeight - 30, 30, 30, -5, true);
         }
 
-        soundManager.playMusic("E:/JAVA-PROJECT/DevilLevelGame/assets/BG_MUSIC.wav");
+        soundManager.playMusic("assets/BG_MUSIC.wav");
     }
 
     @Override
