@@ -78,10 +78,7 @@ public class GamePanel extends JPanel implements ActionListener {
         try {
             backgroundImage = ImageIO.read(new File("assets/1759383659033.jpeg"));
             playerImage = ImageIO.read(new File("assets/char.png"));
-
-        } catch (IOException e) {
-            System.out.println("Images not found, using defaults.");
-        }
+        } catch (IOException e) {}
 
         // Quit button
         quitButton = new JButton("Quit");
