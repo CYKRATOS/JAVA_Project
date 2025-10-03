@@ -76,7 +76,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // Load background + player image
         try {
-            backgroundImage = ImageIO.read(new File("assets/1759383659033.jpeg"));
+            backgroundImage = ImageIO.read(new File("E:/JAVA-PROJECT/DevilLevelGame/assets/1759383659033.jpg"));
             playerImage = ImageIO.read(new File("assets/char.png"));
         } catch (IOException e) {}
 
