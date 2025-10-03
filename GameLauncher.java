@@ -1,59 +1,84 @@
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 public class GameLauncher {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-           JFrame frame = new JFrame("Equilibrium - Login");
+            JFrame frame = new JFrame("Equilibrium");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-            // ✅ Start with login screen ONLY
-            frame.add(new LoginPanel(frame));
-
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // full screen
+
+            // --- Login Panel UI ---
+            JPanel loginPanel = new JPanel();
+            loginPanel.setLayout(new GridBagLayout());
+            loginPanel.setBackground(Color.DARK_GRAY);
+
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(10, 10, 10, 10);
+
+            JLabel userLabel = new JLabel("Username:");
+            userLabel.setForeground(Color.WHITE);
+            gbc.gridx = 0; gbc.gridy = 0;
+            loginPanel.add(userLabel, gbc);
+
+            JTextField usernameField = new JTextField(15);
+            gbc.gridx = 1; gbc.gridy = 0;
+            loginPanel.add(usernameField, gbc);
+
+            JLabel passLabel = new JLabel("Password:");
+            passLabel.setForeground(Color.WHITE);
+            gbc.gridx = 0; gbc.gridy = 1;
+            loginPanel.add(passLabel, gbc);
+
+            JPasswordField passwordField = new JPasswordField(15);
+            gbc.gridx = 1; gbc.gridy = 1;
+            loginPanel.add(passwordField, gbc);
+
+            JButton loginButton = new JButton("Login");
+            JButton signupButton = new JButton("Signup");
+            gbc.gridx = 0; gbc.gridy = 2;
+            loginPanel.add(loginButton, gbc);
+            gbc.gridx = 1; gbc.gridy = 2;
+            loginPanel.add(signupButton, gbc);
+
+            frame.add(loginPanel);
             frame.setVisible(true);
-            // --- Home Panel ---
-            //JPanel homePanel = new JPanel();
-            //homePanel.setLayout(null);
-            //homePanel.setBackground(Color.BLACK);
 
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            int panelWidth = screenSize.width;
+            // --- Login Action ---
+            loginButton.addActionListener(e -> {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
 
-            // Title
-            JLabel title = new JLabel("EQUILIBRIUM");
-            title.setFont(new Font("Arial", Font.BOLD, 60));
-            title.setForeground(Color.BLUE);
-            title.setBounds(0, 50, panelWidth, 100);
-            title.setHorizontalAlignment(SwingConstants.CENTER);
+                int playerId = PlayerDAO.login(username, password);
+                if (playerId != -1) {
+                    JOptionPane.showMessageDialog(frame, "Login Successful!");
 
-            // Level buttons
-            int buttonWidth = 150;
-            int buttonHeight = 50;
-            int spacing = 20;
-            int startX = (panelWidth - (4 * buttonWidth + 3 * spacing)) / 2;
-            int y = 250;
-            int playerId = 0;
-
-            GamePanel gamePanel = new GamePanel(playerId); // create the game panel
-
-            for (int i = 1; i <= 4; i++) {
-                JButton levelButton = new JButton("Level " + i);
-                int level = i; 
-                levelButton.setBounds(startX + (i - 1) * (buttonWidth + spacing), y, buttonWidth, buttonHeight);
-                levelButton.setFont(new Font("Arial", Font.BOLD, 20));
-                levelButton.addActionListener((ActionEvent e) -> {
-                    gamePanel.setLevelIndex(level - 1); // start selected level
-                    frame.getContentPane().removeAll(); // remove home screen
-                    frame.add(gamePanel); // show game panel
+                    // Switch to HomeMenuPanel
+                    frame.getContentPane().removeAll();
+                    frame.add(new HomeMenuPanel(frame, playerId, username));
                     frame.revalidate();
                     frame.repaint();
-                });
-            }
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Invalid credentials!");
+                }
+            });
 
-            frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximized window but keep title bar
-            frame.setVisible(true);
+            // --- Signup Action ---
+            signupButton.addActionListener(e -> {
+                boolean ok = PlayerDAO.signup(usernameField.getText(), new String(passwordField.getPassword()));
+                JOptionPane.showMessageDialog(frame, ok ? "Signup Successful!" : "Signup Failed!");
+            });
         });
     }
 }

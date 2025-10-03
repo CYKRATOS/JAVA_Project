@@ -55,7 +55,7 @@ public class GamePanel extends JPanel implements ActionListener {
     private final int panelHeight;
     private final int groundHeight;
 
-    public GamePanel(int playerId) {
+    public GamePanel(int playerId,String username) {
         setLayout(null);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
