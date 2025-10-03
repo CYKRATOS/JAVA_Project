@@ -1,7 +1,5 @@
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -25,7 +23,7 @@ import javax.swing.Timer;
 
 public class GamePanel extends JPanel implements ActionListener {
     // Constants
-    private static final int PLAYER_SIZE = 80;
+    private static final int PLAYER_SIZE = 50;
     private static final int PLAYER_SPEED = 5;
     private static final int JUMP_SPEED = -20;
     private static final int GRAVITY = 1;
@@ -45,14 +43,6 @@ public class GamePanel extends JPanel implements ActionListener {
     private Rectangle door;
     private final List<Level> levels;
 
-    private final int panelWidth;
-    private final int panelHeight;
-    private final int groundHeight;
-
-    // Level 4 dynamic variables
-    private boolean level4Triggered = false;
-    private Spike level4Obstacle;
-
     // Pause/Resume/Quit
     private boolean isPaused = false;
     private JButton pauseResumeButton;
@@ -60,10 +50,13 @@ public class GamePanel extends JPanel implements ActionListener {
 
     // Background image
     private BufferedImage backgroundImage;
-    private BufferedImage playerImage;
+
+    private final int panelWidth;
+    private final int panelHeight;
+    private final int groundHeight;
 
     public GamePanel(int playerId) {
-        setLayout(null); // absolute positioning
+        setLayout(null);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         panelWidth = screenSize.width;
@@ -74,10 +67,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
         levels = Levels.createLevels(panelWidth, panelHeight, groundHeight);
 
-        // Load background + player image
+        // Load images
         try {
-            backgroundImage = ImageIO.read(new File("E:/JAVA-PROJECT/DevilLevelGame/assets/1759383659033.jpg"));
-            playerImage = ImageIO.read(new File("assets/char.png"));
+            backgroundImage = ImageIO.read(new File("E:/JAVA-PROJECT/DevilLevelGame/assets/BG_IMAGE.png"));
         } catch (IOException e) {}
 
         // Quit button
@@ -99,7 +91,7 @@ public class GamePanel extends JPanel implements ActionListener {
         setupKeyBindings();
         resetLevel();
 
-        timer = new Timer(16, this);
+        timer = new Timer(16, (ActionListener) this);
         timer.start();
     }
 
@@ -120,60 +112,65 @@ public class GamePanel extends JPanel implements ActionListener {
         });
 
         im.put(KeyStroke.getKeyStroke("LEFT"), "left");
-        am.put("left", new AbstractAction() {@Override
-        public void actionPerformed(ActionEvent e) { velX = -PLAYER_SPEED; } });
+        am.put("left", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { velX = -PLAYER_SPEED; }
+        });
 
         im.put(KeyStroke.getKeyStroke("RIGHT"), "right");
-        am.put("right", new AbstractAction() {@Override
-        public void actionPerformed(ActionEvent e) { velX = PLAYER_SPEED; } });
+        am.put("right", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { velX = PLAYER_SPEED; }
+        });
 
         im.put(KeyStroke.getKeyStroke("released LEFT"), "stopLeft");
-        am.put("stopLeft", new AbstractAction() {@Override
-        public void actionPerformed(ActionEvent e) { if (velX < 0) velX = 0; } });
+        am.put("stopLeft", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { if (velX < 0) velX = 0; }
+        });
 
         im.put(KeyStroke.getKeyStroke("released RIGHT"), "stopRight");
-        am.put("stopRight", new AbstractAction() {@Override
-        public void actionPerformed(ActionEvent e) { if (velX > 0) velX = 0; } });
+        am.put("stopRight", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { if (velX > 0) velX = 0; }
+        });
 
         im.put(KeyStroke.getKeyStroke("R"), "restart");
-        am.put("restart", new AbstractAction() {@Override
-        public void actionPerformed(ActionEvent e) {
-            resetLevel();
-            gameCompleted = false;
-            level4Triggered = false;
-        } });
+        am.put("restart", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetLevel();
+                gameCompleted = false;
+            }
+        });
     }
 
     public void setLevelIndex(int index) {
         this.levelIndex = index;
         resetLevel();
         gameCompleted = false;
-        level4Triggered = false;
     }
 
-    private void resetLevel() {
-        Level lvl = levels.get(levelIndex);
-        playerX = panelWidth / 20;
-        playerY = panelHeight - groundHeight - PLAYER_SIZE;
-        velX = 0;
-        velY = 0;
-        inAir = false;
+   private final int LIFT_HEIGHT = 30; // how much higher the player stands
 
-        spikes = new ArrayList<>(lvl.getSpikes());
-        if (levelIndex == 0) {
-            spikes.clear();
-        }
-        spikes.forEach(Spike::reset);
+private void resetLevel() {
+    Level lvl = levels.get(levelIndex);
 
-        door = new Rectangle(lvl.getDoor());
+    // Player initial position
+    playerX = panelWidth / 20;
+    playerY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT; // lifted
 
-        if (levelIndex == 3) {
-            level4Triggered = false;
-            level4Obstacle = new Spike(panelWidth + 30, panelHeight - groundHeight - 30, 30, 30, -5, true);
-        }
+    velX = 0;
+    velY = 0;
+    inAir = false;
 
-        soundManager.playMusic("assets/BG_MUSIC.wav");
-    }
+    spikes = new ArrayList<>(lvl.getSpikes());
+    spikes.forEach(Spike::reset);
+
+    door = new Rectangle(lvl.getDoor());
+
+    soundManager.playMusic("assets/BG_MUSIC.wav");
+}
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -186,37 +183,52 @@ public class GamePanel extends JPanel implements ActionListener {
         if (playerX < 0) playerX = 0;
         if (playerX + PLAYER_SIZE > panelWidth) playerX = panelWidth - PLAYER_SIZE;
 
-        int groundY = panelHeight - groundHeight - PLAYER_SIZE;
-        if (playerY >= groundY) { playerY = groundY; velY = 0; inAir = false; }
+int groundY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT;
+if (playerY >= groundY) {
+    playerY = groundY;
+    velY = 0;
+    inAir = false;
+}
 
         Rectangle playerRect = new Rectangle(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
 
-        if (levelIndex == 0 && spikes.isEmpty()) {
-            int triggerDistance = 100;
-            if (playerX + PLAYER_SIZE >= door.x - triggerDistance) {
-                Spike newSpike = new Spike(door.x - 40, panelHeight - groundHeight - 30, 30, 30, 0);
-                spikes.add(newSpike);
+      // Set custom trigger distances ONCE when Level 1 starts
+if (levelIndex == 0) {
+    if (spikes.size() >= 3) { // ensure spikes exist
+        spikes.get(1).setTriggerDistance(150); // Spike 2 triggers closer
+        spikes.get(2).setTriggerDistance(100); // Spike 3 triggers earlier
+    }
+
+    for (Spike spike : spikes) {
+        if (spike.isReactive() && !spike.getTriggered()) {
+            int distance = Math.abs(spike.getRect().x - playerX);
+            if (distance <= spike.getTriggerDistance()) {  // use the spike's own triggerDistance
+                spike.trigger();
             }
         }
 
-        if (levelIndex == 3 && !level4Triggered) {
-            int triggerDistance = (int)(0.1 * (door.x - playerX));
-            if (playerX + PLAYER_SIZE >= door.x - triggerDistance) {
-                door.x = 100;
-                level4Triggered = true;
-                spikes.add(level4Obstacle);
-            }
-        }
+        spike.update();
 
-        for (Spike spike : spikes) {
-            spike.update(panelWidth);
-            if (playerRect.intersects(spike.getRect())) {
-                soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
-                resetLevel();
-                return;
-            }
+        if (playerRect.intersects(spike.getRect())) {
+            soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
+            resetLevel();
+            return;
         }
+    }
+} else {
+    // Other levels - normal spikes
+    for (Spike spike : spikes) {
+        spike.update();
+        if (playerRect.intersects(spike.getRect())) {
+            soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
+            resetLevel();
+            return;
+        }
+    }
+}
 
+
+        // Check door collision
         if (playerRect.intersects(door)) {
             score += 100;
             soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
@@ -237,42 +249,105 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
 
-        if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-        } else {
-            setBackground(Color.BLACK);
-        }
+    Graphics2D g2 = (Graphics2D) g;
 
-        Graphics2D g2 = (Graphics2D) g;
-
-        g2.setColor(Color.GREEN);
-        g2.setStroke(new BasicStroke(10));
-        g2.drawLine(0, getHeight() - 144, getWidth(), getHeight() - 144);
-
-        g2.setColor(Color.RED);
-        for (Spike spike : spikes)
-            spike.draw(g2);
-
-        g2.setColor(Color.ORANGE);
-        g2.fillRect(door.x, door.y, door.width, door.height);
-
-        if (playerImage != null) {
-            g2.drawImage(playerImage, playerX, playerY, PLAYER_SIZE, PLAYER_SIZE, this);
-        } else {
-            g2.fillRect(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
-        }
-
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 20));
-        g2.drawString("Score: " + score, 20, 30);
-
-        if (gameCompleted) {
-            g2.setFont(new Font("Arial", Font.BOLD, 40));
-            g2.setColor(Color.YELLOW);
-            g2.drawString("Congratulations! Game Completed!", panelWidth / 2 - 300, panelHeight / 2);
-        }
+    // -------------------------
+    // Background
+    // -------------------------
+    if (backgroundImage != null) {
+        g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+    } else {
+        g2.setColor(Color.BLACK);
+        g2.fillRect(0, 0, getWidth(), getHeight());
     }
+
+    // -------------------------
+    // Spikes
+    // -------------------------
+    for (Spike spike : spikes) {
+        spike.draw(g2);
+    }
+
+    // -------------------------
+    // Realistic Door
+    // -------------------------
+    // Base wood color
+    g2.setColor(new Color(139, 69, 19));
+    g2.fillRect(door.x, door.y, door.width, door.height);
+
+    // Panels for depth
+    g2.setColor(new Color(160, 82, 45));
+    int panelMargin = 5;
+
+    // Compute panel size inline to avoid hiding class fields
+    int topPanelHeight = (door.height - 3 * panelMargin) / 2;
+
+    // Top panel
+    g2.fillRect(door.x + panelMargin, door.y + panelMargin, door.width - 2 * panelMargin, topPanelHeight);
+    // Bottom panel
+    g2.fillRect(door.x + panelMargin, door.y + 2 * panelMargin + topPanelHeight,
+                door.width - 2 * panelMargin, topPanelHeight);
+
+    // Doorknob
+    g2.setColor(Color.YELLOW);
+    int knobSize = 8;
+    g2.fillOval(door.x + door.width - 20, door.y + door.height / 2, knobSize, knobSize);
+
+    // Outline
+    g2.setColor(Color.DARK_GRAY);
+    g2.setStroke(new java.awt.BasicStroke(2));
+    g2.drawRect(door.x, door.y, door.width, door.height);
+
+// Player character (rectangles with animated legs)
+// -------------------------
+int bodyWidth = 30;
+int bodyHeight = 50;
+int headSize = 20;
+int legWidth = 10;
+int legHeight = 15;
+
+// Head
+g2.setColor(Color.WHITE);
+g2.fillRect(playerX + (PLAYER_SIZE - headSize)/2, playerY, headSize, headSize);
+
+// Body
+g2.setColor(Color.WHITE);
+g2.fillRect(playerX + (PLAYER_SIZE - bodyWidth)/2, playerY + headSize, bodyWidth, bodyHeight);
+
+// Legs
+g2.setColor(Color.WHITE);
+
+// Determine leg positions for walking animation
+int legOffset = 0;
+if (velX != 0) {
+    legOffset = (System.currentTimeMillis() / 150 % 2 == 0) ? 5 : -5; // simple stepping
+}
+
+// Left leg
+g2.fillRect(playerX + (PLAYER_SIZE - bodyWidth)/2, playerY + headSize + bodyHeight, legWidth, legHeight);
+// Right leg
+g2.fillRect(playerX + (PLAYER_SIZE - bodyWidth)/2 + bodyWidth - legWidth + legOffset,
+            playerY + headSize + bodyHeight, legWidth, legHeight);
+
+
+    // -------------------------
+    // Score
+    // -------------------------
+    g2.setColor(Color.WHITE);
+    g2.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 20));
+    g2.drawString("Score: " + score, 20, 30);
+
+    // -------------------------
+    // Game completed message
+    // -------------------------
+    if (gameCompleted) {
+        g2.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 40));
+        g2.setColor(Color.YELLOW);
+        g2.drawString("Congratulations! Game Completed!", panelWidth / 2 - 300, panelHeight / 2);
+    }
+}
+
 }
