@@ -1,18 +1,23 @@
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class GameDAO {
 
-    public static void saveScore(int playerId, int level, int score) {
-        String query = "INSERT INTO GameScores(player_id, level, score) VALUES (?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, playerId);
-            stmt.setInt(2, level);
-            stmt.setInt(3, score);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-        }
+   public static void saveOrUpdateScore(int playerId, int score) {
+    String query = "INSERT INTO GameScores (player_id, score) VALUES (?, ?) " +
+                   "ON DUPLICATE KEY UPDATE score = ?";
+
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+        stmt.setInt(1, playerId);   // for INSERT
+        stmt.setInt(2, score);      // for INSERT
+        stmt.setInt(3, score);      // for UPDATE
+        stmt.executeUpdate();       // executes either INSERT or UPDATE
+    } catch (SQLException e) {
     }
+}
 
     public static ResultSet getTopScores() {
         String query = "SELECT p.username, g.level, g.score, g.timestamp " +
