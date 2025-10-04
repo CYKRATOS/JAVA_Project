@@ -18,27 +18,68 @@ public class Levels {
         
         // Level 2 (example)
         levels.add(new Level(
-            List.of(
-                new Spike(panelWidth / 5, panelHeight - groundHeight - 30, 30, 30, 3),
-                new Spike(panelWidth / 2, panelHeight - groundHeight - 30, 30, 30, 2)
-            ),
-            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 30, 80)
+            new ArrayList<>(), // No spikes
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
         ));
 
         // Level 3 (example)
         levels.add(new Level(
             List.of(
-                new Spike(panelWidth / 8, panelHeight - groundHeight - 30, 30, 30, 2),
-                new Spike(panelWidth / 4, panelHeight - groundHeight - 30, 30, 30, 3),
-                new Spike(panelWidth / 3, panelHeight - groundHeight - 30, 30, 30, 2)
+                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
+                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
+                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
             ),
-            new Rectangle(panelWidth - 200, panelHeight - groundHeight - 80, 30, 80)
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
         ));
 
-        // Level 4 (empty spikes, door only)
+        // Level 4 (example)
         levels.add(new Level(
-            List.of(),
-            new Rectangle(panelWidth - 200, panelHeight - groundHeight - 80, 30, 80)
+            List.of(
+                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
+                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
+                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
+            ),
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
+        ));
+
+        // Level 5 (example)
+        levels.add(new Level(
+            List.of(
+                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
+                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
+                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
+            ),
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
+        ));
+
+        // Level 6 (example)
+        levels.add(new Level(
+            List.of(
+                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
+                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
+                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
+            ),
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
+        ));
+
+        // Level 7 (example)
+        levels.add(new Level(
+            List.of(
+                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
+                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
+                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
+            ),
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
+        ));
+
+        // Level 8 (example)
+        levels.add(new Level(
+            List.of(
+                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
+                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
+                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
+            ),
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
         ));
 
         return levels;
