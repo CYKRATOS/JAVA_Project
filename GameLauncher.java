@@ -60,6 +60,11 @@ public class GameLauncher {
                 protected void paintComponent(Graphics g) {
                     super.paintComponent(g);
 
+                     // Fill background with gray before drawing the image
+                    g.setColor(new Color(30, 30, 30)); // dark gray
+                    g.fillRect(0, 0, getWidth(), getHeight());
+
+
                     int imgWidth = bgImage.getWidth(this);
                     int imgHeight = bgImage.getHeight(this);
 
@@ -96,7 +101,7 @@ public class GameLauncher {
 
 
             JTextField usernameField = new JTextField(10);
-    usernameField.setPreferredSize(new Dimension(220, 40)); // enough height
+    usernameField.setPreferredSize(new Dimension(220, 35)); // enough height
     usernameField.setMargin(new Insets(5, 10, 5, 10));
     gbc.gridx = 1; gbc.gridy = 0;
     loginPanel.add(usernameField, gbc);
@@ -109,7 +114,7 @@ public class GameLauncher {
 
 
             JPasswordField passwordField = new JPasswordField(10);
-    passwordField.setPreferredSize(new Dimension(220, 40));
+    passwordField.setPreferredSize(new Dimension(220, 35));
     passwordField.setMargin(new Insets(5, 10, 5, 10));
     gbc.gridx = 1; gbc.gridy = 1;
     loginPanel.add(passwordField, gbc);
