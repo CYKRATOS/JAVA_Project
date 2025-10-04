@@ -1,6 +1,6 @@
 # JAVA_Project
 
-# STEPS TP RUN THE APPLICATION
+# STEPS TO RUN THE APPLICATION
 # javac -cp ".;mysql-connector-j-9.4.0.jar" *.java
 # java -cp ".;mysql-connector-j-9.4.0.jar" GameLauncher
 

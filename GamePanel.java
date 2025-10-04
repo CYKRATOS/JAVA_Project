@@ -83,6 +83,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // Quit button
         quitButton = new JButton("Quit");
+        quitButton.setFont(quitButton.getFont().deriveFont(12f));
         quitButton.setBounds(panelWidth - 120, 60, 100, 30);
         quitButton.setFocusable(false);
         quitButton.addActionListener(e -> {
@@ -97,6 +98,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // Pause/Resume button
         pauseResumeButton = new JButton("Pause");
+        pauseResumeButton.setFont(pauseResumeButton.getFont().deriveFont(12f));
         pauseResumeButton.setBounds(panelWidth - 120, 20, 100, 30);
         pauseResumeButton.addActionListener(e -> {
             isPaused = !isPaused;
