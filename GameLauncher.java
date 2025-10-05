@@ -136,11 +136,15 @@ public class GameLauncher {
             styleButton(submitButton, customFont);
             styleButton(cancelButton, customFont);
 
-            gbc.gridy++; gbc.gridwidth = 1; gbc.gridx = 0;
-            loginPanel.add(signInButton, gbc); gbc.gridx = 1;
-            loginPanel.add(signUpButton, gbc); gbc.gridx = 0;
-            loginPanel.add(submitButton, gbc); gbc.gridx = 1;
+            gbc.gridy++; gbc.gridwidth = 2; gbc.gridx = 0;
+            loginPanel.add(signInButton, gbc);
+            gbc.gridy++;    
+            loginPanel.add(signUpButton, gbc);
+            gbc.gridy++;
+            loginPanel.add(submitButton, gbc);
+            gbc.gridy++;
             loginPanel.add(cancelButton, gbc);
+
 
             frame.add(loginPanel);
             frame.setVisible(true);

@@ -25,17 +25,18 @@ import javax.swing.Timer;
 
 public class GamePanel extends JPanel implements ActionListener {
 
-    // Constants
     private static final int PLAYER_SIZE = 50;
     private static final int PLAYER_SPEED = 5;
     private static final int JUMP_SPEED = -20;
     private static final int GRAVITY = 1;
+    private static final int LIFT_HEIGHT = 30;
+    private static final int LEVEL3_SPIKE_SPEED = 8;
 
     private final Timer timer;
     private final SoundManager soundManager = new SoundManager();
 
     private int playerX = 100, playerY = 100;
-    private int velX, velY;
+    private int velX = 0, velY = 0;
     private boolean inAir;
 
     private int levelIndex = 0;
@@ -46,22 +47,13 @@ public class GamePanel extends JPanel implements ActionListener {
     private Rectangle door;
     private final List<Level> levels;
 
-    // Level 2 coins
     private List<Coin> coins;
     private boolean spikeActivated = false;
 
-    // Level 3 specific
-    private boolean doorEventTriggered = false;
-    private boolean level3SpikeSpawned = false;
-    private Spike level3Spike;
-    private final int LEVEL3_SPIKE_SPEED = 5;
-
-    // Pause/Resume/Quit
     private boolean isPaused = false;
-    private JButton pauseResumeButton;
+    private final JButton pauseResumeButton;
     private final JButton quitButton;
 
-    // Background
     private BufferedImage backgroundImage;
 
     private final int panelWidth;
@@ -69,6 +61,11 @@ public class GamePanel extends JPanel implements ActionListener {
     private final int groundHeight;
 
     private final int playerId;
+
+    // Level 3 logic
+    private boolean doorEventTriggered = false;
+    private boolean level3SpikeSpawned = false;
+    private Spike level3Spike;
 
     public GamePanel(int playerId, String username) {
         this.playerId = playerId;
@@ -82,16 +79,15 @@ public class GamePanel extends JPanel implements ActionListener {
 
         levels = Levels.createLevels(panelWidth, panelHeight, groundHeight);
 
-        // Load background image
         try {
             backgroundImage = ImageIO.read(new File("E:/JAVA-PROJECT/DevilLevelGame/assets/BG_IMAGE.png"));
         } catch (IOException e) {}
 
         // Quit button
         quitButton = new JButton("Quit");
-        quitButton.setFont(quitButton.getFont().deriveFont(12f));
         quitButton.setBounds(panelWidth - 120, 60, 100, 30);
         quitButton.setFocusable(false);
+        quitButton.setFont(quitButton.getFont().deriveFont(14f));
         quitButton.addActionListener(e -> {
             saveTotalScore();
             JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
@@ -102,10 +98,10 @@ public class GamePanel extends JPanel implements ActionListener {
         });
         add(quitButton);
 
-        // Pause/Resume button
+        // Pause button
         pauseResumeButton = new JButton("Pause");
-        pauseResumeButton.setFont(pauseResumeButton.getFont().deriveFont(12f));
         pauseResumeButton.setBounds(panelWidth - 120, 20, 100, 30);
+        pauseResumeButton.setFont(pauseResumeButton.getFont().deriveFont(14f));
         pauseResumeButton.addActionListener(e -> {
             isPaused = !isPaused;
             pauseResumeButton.setText(isPaused ? "Resume" : "Pause");
@@ -130,7 +126,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 if (!inAir) {
                     velY = JUMP_SPEED;
                     inAir = true;
-                    soundManager.playSound("assets/jump.wav");
+                    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/jump.wav");
                 }
             }
         });
@@ -169,21 +165,9 @@ public class GamePanel extends JPanel implements ActionListener {
         });
     }
 
-public void setLevelIndex(int index) {
-    if (index >= 0 && index < levels.size()) {
-        this.levelIndex = index;
-        resetLevel();
-        gameCompleted = false;
-    }
-}
-
-
-    private final int LIFT_HEIGHT = 30;
-
     private void resetLevel() {
         Level lvl = levels.get(levelIndex);
 
-        // Player position
         playerX = panelWidth / 20;
         playerY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT;
         velX = velY = 0;
@@ -194,20 +178,23 @@ public void setLevelIndex(int index) {
 
         door = new Rectangle(lvl.getDoor());
 
-        // Level 2 coins setup
         coins = new ArrayList<>();
         spikeActivated = false;
 
-        if (levelIndex == 1) {
-            int numCoins = 10;
-            int coinSize = 40;
-            int spacing = 100; // space between coins
-            int startX = panelWidth / 2 - ((numCoins - 1) * spacing) / 2;
-            int groundY = panelHeight - groundHeight - coinSize - 5; // slightly above ground
+        doorEventTriggered = false;
+        level3SpikeSpawned = false;
+        level3Spike = null;
 
+        // Level 2 coins
+        if (levelIndex == 1) {
+            int numCoins = 11;
+            int coinSize = 40;
+            int spacing = 80;
+            int startX = panelWidth / 2 - ((numCoins - 1) * spacing) / 2;
+            int y = panelHeight - groundHeight - coinSize;
             for (int i = 0; i < numCoins; i++) {
                 int x = startX + i * spacing;
-                coins.add(new Coin(x, groundY, coinSize, coinSize));
+                coins.add(new Coin(x, y, coinSize, coinSize));
             }
         }
     }
@@ -232,118 +219,100 @@ public void setLevelIndex(int index) {
 
         Rectangle playerRect = new Rectangle(playerX, playerY, PLAYER_SIZE, PLAYER_SIZE);
 
-        // ---------------- Level-specific logic ----------------
-        switch (levelIndex) {   
+        // ---------- Level-specific logic ----------
+        switch (levelIndex) {
             case 0 -> {
-                // Level 1 custom spikes
+                // Level 1 spikes
                 if (spikes.size() >= 3) {
-                    spikes.get(1).setTriggerDistance(150); // Spike 2 triggers closer
-                    spikes.get(2).setTriggerDistance(100); // Spike 3 triggers earlier
-                }   for (Spike spike : spikes) {
+                    spikes.get(1).setTriggerDistance(150);
+                    spikes.get(2).setTriggerDistance(100);
+                }
+                for (Spike spike : spikes) {
                     if (spike.isReactive() && !spike.getTriggered()) {
                         int distance = Math.abs(spike.getRect().x - playerX);
-                        if (distance <= spike.getTriggerDistance()) {
-                            spike.trigger();
-                        }
+                        if (distance <= spike.getTriggerDistance()) spike.trigger();
                     }
                     spike.update();
-                    
                     if (playerRect.intersects(spike.getRect())) {
                         soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
                         resetLevel();
                         return;
                     }
                 }
-                if (playerRect.intersects(door)) {
-        score += 100; // you can tweak score value
-        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
-        loadNextLevel();
-        return;
-    }
+                if (playerRect.intersects(door)) { // Level 1 door
+                    score += 100;
+                    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
+                    loadNextLevel();
+                    return;
+                }
             }
+
             case 1 -> {
-    // Level 2 coins & spike
-    long collected = coins.stream().filter(Coin::isCollected).count();
+                // Level 2 coins
+                long collected = coins.stream().filter(Coin::isCollected).count();
+                for (Coin coin : coins) {
+                    if (!coin.isCollected() && playerRect.intersects(coin.getRect())) {
+                        coin.setCollected(true);
+                        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/coin.wav");
+                    }
+                }
 
-    for (Coin coin : coins) {
-        if (!coin.isCollected() && playerRect.intersects(coin.getRect())) {
-            coin.setCollected(true);
-            // 🔊 Play coin sound only in level 2
-            soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/coin.wav");
-        }
-    }
+                if (!spikeActivated && collected >= 8) {
+                    Coin ninthCoin = coins.get(8);
+                    spikes.add(new Spike(ninthCoin.getRect().x, panelHeight - groundHeight - 40, 60, 40));
+                    spikeActivated = true;
+                    // Remove 9th coin after spike spawn
+                    coins.get(8).setCollected(true);
+                }
 
-    // 🧩 Trigger spike after 8th coin is collected (appears under 9th coin)
-    if (!spikeActivated && collected >= 8 && coins.size() >= 9) {
-        Coin ninthCoin = coins.get(8); // index 8 → 9th coin
-        int spikeX = ninthCoin.getRect().x;
-        int spikeY = panelHeight - groundHeight - 40; // ground level
+                for (Spike spike : spikes) {
+                    spike.update();
+                    if (playerRect.intersects(spike.getRect())) {
+                        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
+                        resetLevel();
+                        return;
+                    }
+                }
 
-        // 💥 Spawn the spike
-        spikes.add(new Spike(spikeX, spikeY, 60, 40));
-        spikeActivated = true;
+                if (collected == coins.size() && playerRect.intersects(door)) {
+                    score += 100;
+                    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
+                    loadNextLevel();
+                    return;
+                }
+            }
 
-        // 💨 Make the 9th coin disappear
-        ninthCoin.setCollected(true);
-    }
+            case 2 -> {
+                // Level 3 door teleport & moving spike
+                if (!doorEventTriggered && playerRect.intersects(door)) {
+                    doorEventTriggered = true;
+                    door.x = 50; // teleport left
+                }
 
-    // 🧱 Update spikes and check collision
-    for (Spike spike : spikes) {
-        spike.update();
-        if (playerRect.intersects(spike.getRect())) {
-            soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
-            resetLevel();
-            return;
-        }
-    }
+                if (doorEventTriggered && !level3SpikeSpawned) {
+                    level3Spike = new Spike(panelWidth, panelHeight - groundHeight - 40, 60, 40);
+                    level3Spike.setVelocity(-LEVEL3_SPIKE_SPEED, 0);
+                    level3SpikeSpawned = true;
+                }
 
-    // ✅ Level complete check
-    if (collected == coins.size() && playerRect.intersects(door)) {
-        score += 100;
-        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
-        loadNextLevel();
-        return;
-    }
-}
+                if (level3SpikeSpawned) {
+                    level3Spike.update();
+                    if (playerRect.intersects(level3Spike.getRect())) {
+                        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
+                        resetLevel();
+                        return;
+                    }
+                }
 
-case 2 -> { // Level 3 logic
-    // Trigger door teleport and spike
-    if (!doorEventTriggered && playerRect.intersects(door)) {
-        doorEventTriggered = true;
-
-        // Teleport door to left side
-        door.x = 50; // left side of the screen
-        // Optionally keep same y-position
-        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/door_teleport.wav");
-    }
-
-    // Spawn moving spike from right after door event
-    if (doorEventTriggered && !level3SpikeSpawned) {
-        level3Spike = new Spike(panelWidth, panelHeight - groundHeight - 40, 60, 40); // y-position near ground
-        level3Spike.setVelocity(-LEVEL3_SPIKE_SPEED, 0); // move left
-        level3SpikeSpawned = true;
-    }
-
-    // Update moving spike
-  level3Spike.update();
-if (playerRect.intersects(level3Spike.getRect())) {
-    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
-    resetLevel();
-    return;
-}
-
-
-    // Check if player reaches the new door position
-    if (playerRect.intersects(door)) {
-        score += 100;
-        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
-        loadNextLevel();
-        return;
-    }
-}
+                if (playerRect.intersects(door)) {
+                    score += 100;
+                    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
+                    loadNextLevel();
+                    return;
+                }
+            }
 
             default -> {
-                // Generic spikes for other levels
                 for (Spike spike : spikes) {
                     spike.update();
                     if (playerRect.intersects(spike.getRect())) {
@@ -373,62 +342,95 @@ if (playerRect.intersects(level3Spike.getRect())) {
         GameDAO.saveOrUpdateScore(playerId, score);
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
+        @Override
+protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
+    Graphics2D g2 = (Graphics2D) g;
 
-        // Background
-        if (backgroundImage != null) g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-        else { g2.setColor(Color.BLACK); g2.fillRect(0,0,getWidth(),getHeight()); }
+    // ---------------- Background ----------------
+    if (backgroundImage != null) {
+        g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+    } else {
+        g2.setColor(Color.BLACK);
+        g2.fillRect(0, 0, getWidth(), getHeight());
+    }
 
-        // Spikes
-        for (Spike spike : spikes) spike.draw(g2);
+    // ---------------- Spikes ----------------
+    for (Spike spike : spikes) {
+        spike.draw(g2);
+    }
 
-        // Level 2 coins
-        if (levelIndex == 1) {
-            for (Coin coin : coins) if (!coin.isCollected()) coin.draw(g2);
+    // ---------------- Coins (Level 2) ----------------
+    if (levelIndex == 1) {
+        for (Coin coin : coins) {
+            if (!coin.isCollected()) coin.draw(g2);
         }
+    }
 
-        if (levelIndex == 2 && level3Spike != null) {
-            level3Spike.draw(g2);
-        }
+    // ---------------- Door ----------------
+    // Base door rectangle
+    g2.setColor(new Color(139, 69, 19)); // brown wood
+    g2.fillRect(door.x, door.y, door.width, door.height);
 
-        // Door
-        g2.setColor(new Color(139,69,19));
-        g2.fillRect(door.x, door.y, door.width, door.height);
-        g2.setColor(new Color(160,82,45));
-        int panelMargin = 5;
-        int topPanelHeight = (door.height - 3*panelMargin)/2;
-        g2.fillRect(door.x+panelMargin, door.y+panelMargin, door.width-2*panelMargin, topPanelHeight);
-        g2.fillRect(door.x+panelMargin, door.y+2*panelMargin+topPanelHeight, door.width-2*panelMargin, topPanelHeight);
+    // Add panels for wooden texture
+    int panelMargin = 5;
+    int doorpanelHeight = (door.height - 3 * panelMargin) / 2;  
+    g2.setColor(new Color(160, 82, 45)); // lighter brown
+    g2.fillRect(door.x + panelMargin, door.y + panelMargin, door.width - 2 * panelMargin, doorpanelHeight);
+    g2.fillRect(door.x + panelMargin, door.y + 2 * panelMargin + panelHeight, door.width - 2 * panelMargin, panelHeight);
+
+    // Add metal handle
+    g2.setColor(Color.GRAY);
+    g2.fillOval(door.x + door.width - 20, door.y + door.height / 2 - 5, 10, 10);
+
+    // Add wood grain effect (simple lines)
+    g2.setColor(new Color(100, 50, 20, 120)); // semi-transparent dark brown
+    for (int i = door.x + 5; i < door.x + door.width - 5; i += 5) {
+        g2.drawLine(i, door.y + 5, i, door.y + door.height - 5);
+    }
+
+    // Draw the door border
+    g2.setColor(Color.DARK_GRAY);
+    g2.setStroke(new java.awt.BasicStroke(2));
+    g2.drawRect(door.x, door.y, door.width, door.height);
+
+    // ---------------- Level 3 Spike ----------------
+    if (levelIndex == 2 && level3SpikeSpawned && level3Spike != null) {
+        level3Spike.draw(g2);
+    }
+
+    // ---------------- Player ----------------
+    int bodyWidth = 30, bodyHeight = 50, headSize = 20;
+    int legWidth = 10, legHeight = 15;
+
+    g2.setColor(Color.WHITE);
+    // Head
+    g2.fillRect(playerX + (PLAYER_SIZE - headSize) / 2, playerY, headSize, headSize);
+    // Body
+    g2.fillRect(playerX + (PLAYER_SIZE - bodyWidth) / 2, playerY + headSize, bodyWidth, bodyHeight);
+
+    // Legs with walking offset
+    int legOffset = 0;
+    if (velX != 0) legOffset = (System.currentTimeMillis() / 150 % 2 == 0) ? 5 : -5;
+
+    g2.fillRect(playerX + (PLAYER_SIZE - bodyWidth) / 2, playerY + headSize + bodyHeight, legWidth, legHeight);
+    g2.fillRect(playerX + (PLAYER_SIZE - bodyWidth) / 2 + bodyWidth - legWidth + legOffset,
+                playerY + headSize + bodyHeight, legWidth, legHeight);
+
+    // ---------------- Score ----------------
+    g2.setColor(Color.WHITE);
+    g2.drawString("Score: " + score, 20, 30);
+
+    // ---------------- Game Completed ----------------
+    if (gameCompleted) {
         g2.setColor(Color.YELLOW);
-        g2.fillOval(door.x+door.width-20, door.y+door.height/2, 8, 8);
-        g2.setColor(Color.DARK_GRAY);
-        g2.setStroke(new java.awt.BasicStroke(2));
-        g2.drawRect(door.x, door.y, door.width, door.height);
+        g2.drawString("Congratulations! Game Completed!", panelWidth / 2 - 300, panelHeight / 2);
+    }
+}
 
-        // Player
-        int bodyWidth = 30, bodyHeight = 50, headSize = 20;
-        int legWidth = 10, legHeight = 15;
 
-        g2.setColor(Color.WHITE);
-        g2.fillRect(playerX+(PLAYER_SIZE-headSize)/2, playerY, headSize, headSize);
-        g2.fillRect(playerX+(PLAYER_SIZE-bodyWidth)/2, playerY+headSize, bodyWidth, bodyHeight);
-
-        int legOffset = 0;
-        if (velX != 0) legOffset = (System.currentTimeMillis()/150%2==0)?5:-5;
-        g2.fillRect(playerX+(PLAYER_SIZE-bodyWidth)/2, playerY+headSize+bodyHeight, legWidth, legHeight);
-        g2.fillRect(playerX+(PLAYER_SIZE-bodyWidth)/2+bodyWidth-legWidth+legOffset, playerY+headSize+bodyHeight, legWidth, legHeight);
-
-        // Score
-        g2.setColor(Color.WHITE);
-        g2.drawString("Score: "+score, 20,30);
-
-        // Game completed
-        if (gameCompleted) {
-            g2.setColor(Color.YELLOW);
-            g2.drawString("Congratulations! Game Completed!", panelWidth/2-300, panelHeight/2);
-        }
+    public void setLevelIndex(int levelIndex) {
+        this.levelIndex = levelIndex;
+        resetLevel();
     }
 }

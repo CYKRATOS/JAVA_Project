@@ -22,15 +22,12 @@ public class Levels {
             new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
         ));
 
-        // Level 3 (example)
+        // Level 3
         levels.add(new Level(
-            List.of(
-                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
-                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
-                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
-            ),
-            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
+            List.of(), // No spikes initially
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door initial position
         ));
+
 
         // Level 4 (example)
         levels.add(new Level(
