@@ -16,37 +16,64 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.UIManager;
-import javax.swing.event.ChangeListener;
 import javax.swing.plaf.FontUIResource;
 
 /**
- * Cleaned HomeMenuPanel: single constructor, no duplicated code.
+ * HomeMenuPanel with integrated splash screen.
  */
 public class HomeMenuPanel extends JPanel {
 
-    private final Image bgImage;
+    private Image bgImage;
     private final String playerName;
 
-        // Backward-compatible constructor (for older calls)
+    // Backward-compatible constructor
     public HomeMenuPanel(JFrame frame, int playerId, String username) {
-        this(frame, playerId, username, "Player"); // default name if not provided
+        this(frame, playerId, username, "Player");
     }
 
     public HomeMenuPanel(JFrame frame, int playerId, String username, String name) {
-        // Use provided name if present, otherwise fall back to username
         this.playerName = (name != null && !name.isEmpty()) ? name : username;
 
+        setLayout(null);
+        setOpaque(false);
+
+        // --- Splash Screen Panel ---
+        JPanel splashPanel = new JPanel(null);
+        splashPanel.setBackground(Color.BLACK);
+
+        JLabel gifLabel = new JLabel(new ImageIcon("E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro.gif"));
+        gifLabel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
+                Toolkit.getDefaultToolkit().getScreenSize().height);
+        splashPanel.add(gifLabel);
+
+        splashPanel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
+                Toolkit.getDefaultToolkit().getScreenSize().height);
+        add(splashPanel);
+        revalidate();
+        repaint();
+
+        // --- Timer to remove splash after 3 seconds ---
+        new Timer(3000, e -> {
+            remove(splashPanel);
+            initHomeMenu(frame, playerId, username); // load actual home menu
+            revalidate();
+            repaint();
+        }).start();
+    }
+
+    // --- Initialize your existing home menu ---
+    private void initHomeMenu(JFrame frame, int playerId, String username) {
         // Load background image
         bgImage = new ImageIcon("E:/JAVA-PROJECT/DevilLevelGame/assets/HOME_2.jpg").getImage();
 
-        // --- Load a custom font (try preferred files, fallback to system font) ---
+        // Load custom font
         Font customFont = new Font("Serif", Font.BOLD, 40);
         try {
             File fontFile = new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Orbitron-Regular.ttf");
-            if (!fontFile.exists()) {
+            if (!fontFile.exists())
                 fontFile = new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Orbitron-Black.ttf");
-            }
             if (fontFile.exists()) {
                 customFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(customFont);
@@ -55,7 +82,7 @@ public class HomeMenuPanel extends JPanel {
             System.out.println("Custom font could not be loaded; using default.");
         }
 
-        // Apply a derived UI font size to UI defaults (optional, keeps look consistent)
+        // Apply UI font globally
         Enumeration<Object> keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
@@ -65,14 +92,11 @@ public class HomeMenuPanel extends JPanel {
             }
         }
 
-        setLayout(null);
-        setOpaque(false);
-
-        // Screen dimensions (used for centering)
+        // Screen dimensions
         int panelWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
         int panelHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
 
-        // Title label with colored HTML parts
+        // Title label
         JLabel title = new JLabel(
                 "<html><span style='color: #007BFF;'>EQUILIBRIUM</span> - "
                         + "<span style='color: #007BFF;'>Welcome " + escapeHtml(playerName) + "</span></html>",
@@ -81,10 +105,6 @@ public class HomeMenuPanel extends JPanel {
         title.setBounds(0, 80, panelWidth, 100);
         add(title);
 
-        // Metallic colors and button font
-        Color metallicBase = new Color(180, 180, 200);
-        Color metallicHighlight = new Color(230, 230, 255);
-        Color metallicShadow = new Color(100, 100, 120);
         Font buttonFont = customFont.deriveFont(Font.BOLD, 24f);
 
         // Buttons configuration
@@ -99,15 +119,14 @@ public class HomeMenuPanel extends JPanel {
         int startX = (panelWidth - totalWidth) / 2;
         int startY = panelHeight - bottomMargin - (rows * buttonHeight + (rows - 1) * spacingY);
 
-        // --- Level buttons (1..8) ---
+        // Level buttons
         for (int i = 1; i <= 8; i++) {
             int row = (i - 1) / cols;
             int col = (i - 1) % cols;
             int x = startX + col * (buttonWidth + spacingX);
             int y = startY + row * (buttonHeight + spacingY);
 
-            JButton levelButton = createMetallicButton("Level " + i, metallicBase, metallicHighlight, metallicShadow,
-                    buttonFont);
+            JButton levelButton = createGlassButton("Level " + i, buttonFont);
             final int levelIndex = i - 1;
             levelButton.setBounds(x, y, buttonWidth, buttonHeight);
             levelButton.addActionListener(ev -> {
@@ -121,9 +140,8 @@ public class HomeMenuPanel extends JPanel {
             add(levelButton);
         }
 
-        // --- Leaderboard button centered below levels ---
-        JButton leaderboardBtn = createMetallicButton("Leaderboard", metallicBase, metallicHighlight, metallicShadow,
-                buttonFont);
+        // Leaderboard button
+        JButton leaderboardBtn = createGlassButton("Leaderboard", buttonFont);
         int leaderboardWidth = 300;
         int leaderboardHeight = 60;
         int leaderboardX = (panelWidth - leaderboardWidth) / 2;
@@ -133,27 +151,41 @@ public class HomeMenuPanel extends JPanel {
         add(leaderboardBtn);
     }
 
-    // Factory method for metallic-style buttons
-    private JButton createMetallicButton(String text, Color base, Color highlight, Color shadow, Font font) {
+    private JButton createGlassButton(String text, Font font) {
         JButton button = new JButton(text);
-        button.setFont(font);
-        button.setForeground(Color.BLACK);
+        button.setFont(font.deriveFont(Font.BOLD, 24f));
+        button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED, highlight, shadow));
-        button.setBackground(base);
-        button.setOpaque(true);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+        button.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
 
-        // Change background on rollover/press
-        ChangeListener cl = e -> {
-            if (button.getModel().isPressed()) {
-                button.setBackground(shadow);
-            } else if (button.getModel().isRollover()) {
-                button.setBackground(highlight);
+        Color glassColor = new Color(255, 255, 255, 30);
+        Color hoverBorderColor = new Color(57, 255, 20);
+        Color defaultBorder = Color.WHITE;
+
+        button.addChangeListener(e -> {
+            boolean hover = button.getModel().isRollover();
+            if (hover) {
+                button.setBorder(BorderFactory.createLineBorder(hoverBorderColor, 2));
+                button.setFont(font.deriveFont(Font.BOLD, 26f));
             } else {
-                button.setBackground(base);
+                button.setBorder(BorderFactory.createLineBorder(defaultBorder, 2));
+                button.setFont(font.deriveFont(Font.BOLD, 24f));
             }
-        };
-        button.getModel().addChangeListener(cl);
+            button.repaint();
+        });
+
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, javax.swing.JComponent c) {
+                Graphics g2 = g.create();
+                g2.setColor(glassColor);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
+                super.paint(g2, c);
+                g2.dispose();
+            }
+        });
 
         return button;
     }
@@ -161,35 +193,34 @@ public class HomeMenuPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-
-        // Fill background where image doesn't cover
         g.setColor(new Color(30, 30, 30));
         g.fillRect(0, 0, getWidth(), getHeight());
 
-        int imgWidth = bgImage.getWidth(this);
-        int imgHeight = bgImage.getHeight(this);
+        if (bgImage != null) {
+            int imgWidth = bgImage.getWidth(this);
+            int imgHeight = bgImage.getHeight(this);
 
-        if (imgWidth > 0 && imgHeight > 0) {
-            double panelRatio = (double) getWidth() / getHeight();
-            double imgRatio = (double) imgWidth / imgHeight;
+            if (imgWidth > 0 && imgHeight > 0) {
+                double panelRatio = (double) getWidth() / getHeight();
+                double imgRatio = (double) imgWidth / imgHeight;
 
-            int drawWidth, drawHeight;
-            if (panelRatio > imgRatio) {
-                drawHeight = getHeight();
-                drawWidth = (int) (drawHeight * imgRatio);
-            } else {
-                drawWidth = getWidth();
-                drawHeight = (int) (drawWidth / imgRatio);
+                int drawWidth, drawHeight;
+                if (panelRatio > imgRatio) {
+                    drawHeight = getHeight();
+                    drawWidth = (int) (drawHeight * imgRatio);
+                } else {
+                    drawWidth = getWidth();
+                    drawHeight = (int) (drawWidth / imgRatio);
+                }
+
+                int x = (getWidth() - drawWidth) / 2;
+                int y = (getHeight() - drawHeight) / 2;
+
+                g.drawImage(bgImage, x, y, drawWidth, drawHeight, this);
             }
-
-            int x = (getWidth() - drawWidth) / 2;
-            int y = (getHeight() - drawHeight) / 2;
-
-            g.drawImage(bgImage, x, y, drawWidth, drawHeight, this);
         }
     }
 
-    // Simple html-escaping for the small username insertion into the title (prevents broken HTML for unusual names)
     private static String escapeHtml(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");

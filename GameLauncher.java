@@ -36,7 +36,7 @@ public class GameLauncher {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // Load custom font (fallback to system font if unavailable)
+            // Load custom font
             Font customFont;
             try {
                 customFont = Font.createFont(Font.TRUETYPE_FONT,
@@ -57,7 +57,7 @@ public class GameLauncher {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-            // Background panel with scaled image
+            // Background panel
             JPanel loginPanel = new JPanel() {
                 private final Image bgImage = new ImageIcon(
                         "E:/JAVA-PROJECT/DevilLevelGame/assets/LOGIN.png").getImage();
@@ -87,28 +87,35 @@ public class GameLauncher {
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(10,10,10,10);
 
+            // Field dimensions
+            int fieldWidth = 150;
+            int fieldHeight = 40;
+
+            // Buttons dimensions
+            int buttonWidth = 150;
+            int buttonHeight = 45;
+
             // Fields
-            JTextField nameField = new JTextField(15);
-            JTextField usernameField = new JTextField(15);
-            JPasswordField passwordField = new JPasswordField(15);
-            JPasswordField rePasswordField = new JPasswordField(15);
+            JTextField nameField = new JTextField(10);
+            JTextField usernameField = new JTextField(10);
+            JPasswordField passwordField = new JPasswordField(10);
+            JPasswordField rePasswordField = new JPasswordField(10);
 
             JTextField[] allFields = { nameField, usernameField, passwordField, rePasswordField };
+            
             for (JTextField f : allFields) {
-                f.setFont(customFont.deriveFont(Font.PLAIN, 15f));
+                f.setFont(customFont.deriveFont(Font.PLAIN, 16f));
                 f.setOpaque(false);
                 f.setBorder(new LineBorder(Color.WHITE, 2, true));
+                f.setPreferredSize(new java.awt.Dimension(fieldWidth, fieldHeight));
+                f.setVisible(false); // initially hidden
             }
 
-            // Add placeholders (sets placeholder text + color + echo handling)
-            addPlaceholder(nameField, "Enter name");
-            addPlaceholder(usernameField, "Enter username");
-            addPlaceholder(passwordField, "Enter password");
+            // Placeholders
+            addPlaceholder(nameField, "Name");
+            addPlaceholder(usernameField, "Username");
+            addPlaceholder(passwordField, "Password");
             addPlaceholder(rePasswordField, "Re-enter password");
-
-            // Initially SignIn only
-            nameField.setVisible(false);
-            rePasswordField.setVisible(false);
 
             gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
             loginPanel.add(nameField, gbc); gbc.gridy++;
@@ -136,6 +143,10 @@ public class GameLauncher {
             styleButton(submitButton, customFont);
             styleButton(cancelButton, customFont);
 
+            // Make SignIn and SignUp buttons same size
+            signInButton.setPreferredSize(new java.awt.Dimension(buttonWidth, buttonHeight));
+            signUpButton.setPreferredSize(new java.awt.Dimension(buttonWidth, buttonHeight));
+
             gbc.gridy++; gbc.gridwidth = 2; gbc.gridx = 0;
             loginPanel.add(signInButton, gbc);
             gbc.gridy++;    
@@ -145,17 +156,15 @@ public class GameLauncher {
             gbc.gridy++;
             loginPanel.add(cancelButton, gbc);
 
-
             frame.add(loginPanel);
             frame.setVisible(true);
 
-            // Ensure frame has focus, not the first field (invokeLater to be reliable)
             SwingUtilities.invokeLater(() -> {
                 frame.setFocusable(true);
                 frame.requestFocusInWindow();
             });
 
-            // Clear messages when typing begins
+            // Clear messages on typing
             KeyAdapter hideMsg = new KeyAdapter() {
                 @Override
                 public void keyTyped(KeyEvent e) {
@@ -167,28 +176,36 @@ public class GameLauncher {
 
             // --- SignIn ---
             signInButton.addActionListener(e -> {
-                String username = usernameField.getText().trim();
-                String password = new String(passwordField.getPassword()).trim();
+    if (!usernameField.isVisible()) {
+        // First click → just show the fields
+        usernameField.setVisible(true);
+        passwordField.setVisible(true);
+        loginPanel.revalidate();
+        loginPanel.repaint();
+    } else {
+        // Second click → fields visible, perform login
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword()).trim();
 
-                if (isEmptyOrPlaceholder(usernameField) || isEmptyOrPlaceholder(passwordField)) {
-                    messageLabel.setForeground(Color.RED);
-                    messageLabel.setText("Username and Password cannot be empty!");
-                    messageLabel.setVisible(true);
-                    return;
-                }
+        if (isEmptyOrPlaceholder(usernameField) || isEmptyOrPlaceholder(passwordField)) {
+            messageLabel.setForeground(Color.RED);
+            messageLabel.setText("Username and Password cannot be empty!");
+            messageLabel.setVisible(true);
+            return;
+        }
 
-                Player player = PlayerDAO.login(username, password);
-                if (player != null) {
-                    frame.getContentPane().removeAll();
-                    frame.add(new HomeMenuPanel(frame, player.getId(), player.getUsername(), player.getName()));
-                    frame.revalidate(); frame.repaint();
-                } else {
-                    messageLabel.setForeground(Color.RED);
-                    messageLabel.setText("Invalid credentials!");
-                    messageLabel.setVisible(true);
-                }
-            });
-
+        Player player = PlayerDAO.login(username, password);
+        if (player != null) {
+            frame.getContentPane().removeAll();
+            frame.add(new HomeMenuPanel(frame, player.getId(), player.getUsername(), player.getName()));
+            frame.revalidate(); frame.repaint();
+        } else {
+            messageLabel.setForeground(Color.RED);
+            messageLabel.setText("Invalid credentials!");
+            messageLabel.setVisible(true);
+        }
+    }
+});
             // --- Enter SignUp mode ---
             signUpButton.addActionListener(e -> {
                 messageLabel.setText(""); messageLabel.setVisible(false);
@@ -200,7 +217,6 @@ public class GameLauncher {
                 signInButton.setVisible(false);
                 signUpButton.setVisible(false);
 
-                // reset placeholders/values for all fields
                 for (JTextField f : allFields) resetField(f);
 
                 loginPanel.revalidate();
@@ -249,7 +265,6 @@ public class GameLauncher {
                     messageLabel.setText("Signup successful! Redirecting to Sign In...");
                     messageLabel.setVisible(true);
 
-                    // Reset to SignIn screen
                     resetToLogin(nameField, usernameField, passwordField, rePasswordField,
                             messageLabel, signInButton, signUpButton, submitButton, cancelButton);
                 } else {
@@ -269,7 +284,6 @@ public class GameLauncher {
         });
     }
 
-    // placeholder utility: initialize placeholder text + focus handling
     private static void addPlaceholder(JTextField field, String placeholder) {
         placeholders.put(field, placeholder);
         resetField(field);
@@ -293,7 +307,6 @@ public class GameLauncher {
         });
     }
 
-    // set placeholder text and style (gray + hide echo for password)
     private static void resetField(JTextField field) {
         String placeholder = placeholders.getOrDefault(field, "");
         field.setText(placeholder);
@@ -301,7 +314,6 @@ public class GameLauncher {
         if (field instanceof JPasswordField jPasswordField) jPasswordField.setEchoChar((char) 0);
     }
 
-    // return true when field is logically empty (ignoring placeholder)
     private static boolean isEmptyOrPlaceholder(JTextField field) {
         if (field instanceof JPasswordField pf) {
             String val = new String(pf.getPassword()).trim();
@@ -316,8 +328,9 @@ public class GameLauncher {
                                      JPasswordField passwordField, JPasswordField rePasswordField,
                                      JLabel messageLabel, JButton signInButton, JButton signUpButton,
                                      JButton submitButton, JButton cancelButton) {
-        for (JTextField f : new JTextField[] { nameField, usernameField, passwordField, rePasswordField }) {
+        for (JTextField f : new JTextField[]{ nameField, usernameField, passwordField, rePasswordField }) {
             resetField(f);
+            f.setVisible(false); // hide fields
         }
 
         nameField.setVisible(false);
