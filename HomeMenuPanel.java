@@ -39,8 +39,8 @@ public class HomeMenuPanel extends JPanel {
         setLayout(null);
         setOpaque(false);
 
-         if (!splashPlayed) { // Only play splash once
-            splashPlayed = true; // mark as played
+         if (!splashPlayed) { 
+            splashPlayed = true; 
 
         // --- Splash Screen Panel ---
         JPanel splashPanel = new JPanel(null);
@@ -156,7 +156,7 @@ public class HomeMenuPanel extends JPanel {
         int leaderboardX = (panelWidth - leaderboardWidth) / 2;
         int leaderboardY = startY + rows * (buttonHeight + spacingY);
         leaderboardBtn.setBounds(leaderboardX, leaderboardY, leaderboardWidth, leaderboardHeight);
-        leaderboardBtn.addActionListener(ev -> new LeaderboardFrame());
+        leaderboardBtn.addActionListener(ev -> new LeaderboardApp());
         add(leaderboardBtn);
     }
 
