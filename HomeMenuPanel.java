@@ -20,13 +20,13 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
-/**
- * HomeMenuPanel with integrated splash screen.
- */
 public class HomeMenuPanel extends JPanel {
 
     private Image bgImage;
     private final String playerName;
+
+    // Static flag to play splash only once
+    private static boolean splashPlayed = false;
 
     // Backward-compatible constructor
     public HomeMenuPanel(JFrame frame, int playerId, String username) {
@@ -39,11 +39,15 @@ public class HomeMenuPanel extends JPanel {
         setLayout(null);
         setOpaque(false);
 
+         if (!splashPlayed) { // Only play splash once
+            splashPlayed = true; // mark as played
+
         // --- Splash Screen Panel ---
         JPanel splashPanel = new JPanel(null);
         splashPanel.setBackground(Color.BLACK);
 
-        JLabel gifLabel = new JLabel(new ImageIcon("E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro.gif"));
+        JLabel gifLabel = new JLabel(new ImageIcon(
+                "E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro.gif"));
         gifLabel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
                 Toolkit.getDefaultToolkit().getScreenSize().height);
         splashPanel.add(gifLabel);
@@ -55,20 +59,27 @@ public class HomeMenuPanel extends JPanel {
         repaint();
 
         // --- Timer to remove splash after 3 seconds ---
-        new Timer(3000, e -> {
+        Timer splashTimer = new Timer(6500, e -> {
             remove(splashPanel);
-            initHomeMenu(frame, playerId, username); // load actual home menu
+            ((Timer) e.getSource()).stop();
+            initHomeMenu(frame, playerId, username);
             revalidate();
             repaint();
-        }).start();
+        });
+        splashTimer.setRepeats(false);
+        splashTimer.start();
+    }else {
+            // If splash already played, go straight to home menu
+            initHomeMenu(frame, playerId, username);
+        }
     }
 
-    // --- Initialize your existing home menu ---
     private void initHomeMenu(JFrame frame, int playerId, String username) {
+
         // Load background image
         bgImage = new ImageIcon("E:/JAVA-PROJECT/DevilLevelGame/assets/HOME_2.jpg").getImage();
 
-        // Load custom font
+        // --- Load a custom font ---
         Font customFont = new Font("Serif", Font.BOLD, 40);
         try {
             File fontFile = new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Orbitron-Regular.ttf");
@@ -82,7 +93,7 @@ public class HomeMenuPanel extends JPanel {
             System.out.println("Custom font could not be loaded; using default.");
         }
 
-        // Apply UI font globally
+        // Apply font to UI defaults
         Enumeration<Object> keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
@@ -92,7 +103,6 @@ public class HomeMenuPanel extends JPanel {
             }
         }
 
-        // Screen dimensions
         int panelWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
         int panelHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
 
@@ -105,9 +115,8 @@ public class HomeMenuPanel extends JPanel {
         title.setBounds(0, 80, panelWidth, 100);
         add(title);
 
+        // Button font and layout
         Font buttonFont = customFont.deriveFont(Font.BOLD, 24f);
-
-        // Buttons configuration
         int buttonWidth = 150;
         int buttonHeight = 50;
         int spacingX = 20;
@@ -119,7 +128,7 @@ public class HomeMenuPanel extends JPanel {
         int startX = (panelWidth - totalWidth) / 2;
         int startY = panelHeight - bottomMargin - (rows * buttonHeight + (rows - 1) * spacingY);
 
-        // Level buttons
+        // --- Level buttons ---
         for (int i = 1; i <= 8; i++) {
             int row = (i - 1) / cols;
             int col = (i - 1) % cols;
@@ -140,7 +149,7 @@ public class HomeMenuPanel extends JPanel {
             add(levelButton);
         }
 
-        // Leaderboard button
+        // --- Leaderboard button ---
         JButton leaderboardBtn = createGlassButton("Leaderboard", buttonFont);
         int leaderboardWidth = 300;
         int leaderboardHeight = 60;
