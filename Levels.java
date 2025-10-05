@@ -9,11 +9,11 @@ public class Levels {
 
        levels.add(new Level(
             List.of(
-                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
-                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
-                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
+                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 0),   // stationary
+                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1),  // moves left
+                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // moves right
             ),
-            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
+            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80)      // door
         ));
         
         // Level 2 (example)
@@ -32,7 +32,6 @@ public class Levels {
         // Level 4 (example)
         levels.add(new Level(
             List.of(
-                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
                 new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
                 new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
             ),
@@ -42,7 +41,6 @@ public class Levels {
         // Level 5 (example)
         levels.add(new Level(
             List.of(
-                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
                 new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
                 new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
             ),
@@ -52,7 +50,6 @@ public class Levels {
         // Level 6 (example)
         levels.add(new Level(
             List.of(
-                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
                 new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
                 new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
             ),
@@ -62,7 +59,6 @@ public class Levels {
         // Level 7 (example)
         levels.add(new Level(
             List.of(
-                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
                 new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
                 new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
             ),
@@ -72,7 +68,6 @@ public class Levels {
         // Level 8 (example)
         levels.add(new Level(
             List.of(
-                new Spike(panelWidth / 4, panelHeight - groundHeight - 40, 60, 40),    // Spike 1 - stationary
                 new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
                 new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
             ),
