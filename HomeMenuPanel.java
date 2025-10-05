@@ -1,5 +1,4 @@
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics;
@@ -18,30 +17,45 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.FontUIResource;
 
+/**
+ * Cleaned HomeMenuPanel: single constructor, no duplicated code.
+ */
 public class HomeMenuPanel extends JPanel {
 
     private final Image bgImage;
+    private final String playerName;
 
+        // Backward-compatible constructor (for older calls)
     public HomeMenuPanel(JFrame frame, int playerId, String username) {
+        this(frame, playerId, username, "Player"); // default name if not provided
+    }
+
+    public HomeMenuPanel(JFrame frame, int playerId, String username, String name) {
+        // Use provided name if present, otherwise fall back to username
+        this.playerName = (name != null && !name.isEmpty()) ? name : username;
 
         // Load background image
         bgImage = new ImageIcon("E:/JAVA-PROJECT/DevilLevelGame/assets/HOME_2.jpg").getImage();
 
-        // --- LOAD GLOBAL FONT ---
+        // --- Load a custom font (try preferred files, fallback to system font) ---
         Font customFont = new Font("Serif", Font.BOLD, 40);
         try {
-            customFont = Font.createFont(Font.TRUETYPE_FONT,
-                    new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Eater-Regular.ttf"));
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(customFont);
-        } catch (FontFormatException | IOException e) {
-            System.out.println("Custom font could not be loaded. Using default font.");
+            File fontFile = new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Orbitron-Regular.ttf");
+            if (!fontFile.exists()) {
+                fontFile = new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Orbitron-Black.ttf");
+            }
+            if (fontFile.exists()) {
+                customFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(customFont);
+            }
+        } catch (FontFormatException | IOException ex) {
+            System.out.println("Custom font could not be loaded; using default.");
         }
 
-        // Apply smaller font globally
+        // Apply a derived UI font size to UI defaults (optional, keeps look consistent)
         Enumeration<Object> keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
@@ -54,20 +68,20 @@ public class HomeMenuPanel extends JPanel {
         setLayout(null);
         setOpaque(false);
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int panelWidth = screenSize.width;
+        // Screen dimensions (used for centering)
+        int panelWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
+        int panelHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
 
-        // Title label with colored EQUILIBRIUM
+        // Title label with colored HTML parts
         JLabel title = new JLabel(
-            "<html><span style='color: #007BFF;'>EQUILIBRIUM</span> - "
-            + "<span style='color: #007BFF;'>Welcome " + username + "</span></html>",
-            SwingConstants.CENTER
-        );
+                "<html><span style='color: #007BFF;'>EQUILIBRIUM</span> - "
+                        + "<span style='color: #007BFF;'>Welcome " + escapeHtml(playerName) + "</span></html>",
+                SwingConstants.CENTER);
         title.setFont(customFont.deriveFont(Font.BOLD, 60f));
         title.setBounds(0, 80, panelWidth, 100);
         add(title);
 
-        // --- Metallic Button Colors ---
+        // Metallic colors and button font
         Color metallicBase = new Color(180, 180, 200);
         Color metallicHighlight = new Color(230, 230, 255);
         Color metallicShadow = new Color(100, 100, 120);
@@ -78,54 +92,59 @@ public class HomeMenuPanel extends JPanel {
         int buttonHeight = 50;
         int spacingX = 20;
         int spacingY = 20;
-        int bottomMargin = 200; // distance from bottom edge of the panel
-        int startY = Toolkit.getDefaultToolkit().getScreenSize().height - bottomMargin - (2 * buttonHeight + spacingY); 
-        int startX = (panelWidth - (4 * buttonWidth + 3 * spacingX)) / 2; // horizontally centered
+        int bottomMargin = 200;
+        int rows = 2;
+        int cols = 4;
+        int totalWidth = cols * buttonWidth + (cols - 1) * spacingX;
+        int startX = (panelWidth - totalWidth) / 2;
+        int startY = panelHeight - bottomMargin - (rows * buttonHeight + (rows - 1) * spacingY);
 
-        // --- Level Buttons (2 rows x 4 columns) ---
+        // --- Level buttons (1..8) ---
         for (int i = 1; i <= 8; i++) {
-            JButton levelButton = createMetallicButton("Level " + i, metallicBase, metallicHighlight, metallicShadow, buttonFont);
-            int level = i;
-            int row = (i - 1) / 4;
-            int col = (i - 1) % 4;
+            int row = (i - 1) / cols;
+            int col = (i - 1) % cols;
             int x = startX + col * (buttonWidth + spacingX);
             int y = startY + row * (buttonHeight + spacingY);
-            levelButton.setBounds(x, y, buttonWidth, buttonHeight);
 
-            levelButton.addActionListener(e -> {
+            JButton levelButton = createMetallicButton("Level " + i, metallicBase, metallicHighlight, metallicShadow,
+                    buttonFont);
+            final int levelIndex = i - 1;
+            levelButton.setBounds(x, y, buttonWidth, buttonHeight);
+            levelButton.addActionListener(ev -> {
                 GamePanel gamePanel = new GamePanel(playerId, username);
-                gamePanel.setLevelIndex(level - 1);
+                gamePanel.setLevelIndex(levelIndex);
                 frame.getContentPane().removeAll();
                 frame.add(gamePanel);
                 frame.revalidate();
                 frame.repaint();
             });
-
             add(levelButton);
         }
 
-        // --- Centered Leaderboard Button ---
-        JButton leaderboardBtn = createMetallicButton("Leaderboard", metallicBase, metallicHighlight, metallicShadow, buttonFont);
+        // --- Leaderboard button centered below levels ---
+        JButton leaderboardBtn = createMetallicButton("Leaderboard", metallicBase, metallicHighlight, metallicShadow,
+                buttonFont);
         int leaderboardWidth = 300;
         int leaderboardHeight = 60;
         int leaderboardX = (panelWidth - leaderboardWidth) / 2;
-        int leaderboardY = startY + 2 * (buttonHeight + spacingY);
+        int leaderboardY = startY + rows * (buttonHeight + spacingY);
         leaderboardBtn.setBounds(leaderboardX, leaderboardY, leaderboardWidth, leaderboardHeight);
-        leaderboardBtn.addActionListener(e -> new LeaderboardFrame());
+        leaderboardBtn.addActionListener(ev -> new LeaderboardFrame());
         add(leaderboardBtn);
     }
 
-    // --- Metallic Button Factory ---
+    // Factory method for metallic-style buttons
     private JButton createMetallicButton(String text, Color base, Color highlight, Color shadow, Font font) {
         JButton button = new JButton(text);
         button.setFont(font);
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createBevelBorder(1, highlight, shadow));
+        button.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED, highlight, shadow));
         button.setBackground(base);
         button.setOpaque(true);
 
-        button.getModel().addChangeListener((ChangeEvent e) -> {
+        // Change background on rollover/press
+        ChangeListener cl = e -> {
             if (button.getModel().isPressed()) {
                 button.setBackground(shadow);
             } else if (button.getModel().isRollover()) {
@@ -133,7 +152,8 @@ public class HomeMenuPanel extends JPanel {
             } else {
                 button.setBackground(base);
             }
-        });
+        };
+        button.getModel().addChangeListener(cl);
 
         return button;
     }
@@ -142,7 +162,7 @@ public class HomeMenuPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // Fill background with gray where image doesn't cover
+        // Fill background where image doesn't cover
         g.setColor(new Color(30, 30, 30));
         g.fillRect(0, 0, getWidth(), getHeight());
 
@@ -154,7 +174,6 @@ public class HomeMenuPanel extends JPanel {
             double imgRatio = (double) imgWidth / imgHeight;
 
             int drawWidth, drawHeight;
-
             if (panelRatio > imgRatio) {
                 drawHeight = getHeight();
                 drawWidth = (int) (drawHeight * imgRatio);
@@ -168,5 +187,11 @@ public class HomeMenuPanel extends JPanel {
 
             g.drawImage(bgImage, x, y, drawWidth, drawHeight, this);
         }
+    }
+
+    // Simple html-escaping for the small username insertion into the title (prevents broken HTML for unusual names)
+    private static String escapeHtml(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 }

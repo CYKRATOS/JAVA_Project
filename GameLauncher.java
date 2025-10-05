@@ -1,193 +1,338 @@
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
 import javax.swing.plaf.FontUIResource;
 
 public class GameLauncher {
+
+    private static final Map<JTextField, String> placeholders = new HashMap<>();
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // --- LOAD GLOBAL FONT ---
+            // Load custom font (fallback to system font if unavailable)
+            Font customFont;
             try {
-                Font customFont = Font.createFont(Font.TRUETYPE_FONT,
-                        new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Eater-Regular.ttf"));
-
-                java.awt.GraphicsEnvironment ge = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment();
-                ge.registerFont(customFont);
-
-                // Apply globally to all Swing components
+                customFont = Font.createFont(Font.TRUETYPE_FONT,
+                        new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Orbitron-SemiBold.ttf"));
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(customFont);
                 Enumeration<Object> keys = UIManager.getDefaults().keys();
                 while (keys.hasMoreElements()) {
                     Object key = keys.nextElement();
-                    Object value = UIManager.get(key);
-                    if (value instanceof FontUIResource) {
-                        UIManager.put(key, new FontUIResource(customFont.deriveFont(15f))); // default size
+                    if (UIManager.get(key) instanceof FontUIResource) {
+                        UIManager.put(key, new FontUIResource(customFont.deriveFont(15f)));
                     }
                 }
             } catch (FontFormatException | IOException e) {
+                customFont = new Font("SansSerif", Font.BOLD, 15);
             }
-            // --- END GLOBAL FONT ---
 
             JFrame frame = new JFrame("Equilibrium");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-            // --- Modern Login Panel ---
+            // Background panel with scaled image
             JPanel loginPanel = new JPanel() {
-                private final Image bgImage = new ImageIcon("E:/JAVA-PROJECT/DevilLevelGame/assets/LOGIN.png").getImage();
+                private final Image bgImage = new ImageIcon(
+                        "E:/JAVA-PROJECT/DevilLevelGame/assets/LOGIN.png").getImage();
 
                 @Override
                 protected void paintComponent(Graphics g) {
                     super.paintComponent(g);
-
-                     // Fill background with gray before drawing the image
-                    g.setColor(new Color(30, 30, 30)); // dark gray
+                    g.setColor(new Color(30, 30, 30));
                     g.fillRect(0, 0, getWidth(), getHeight());
 
-
-                    int imgWidth = bgImage.getWidth(this);
-                    int imgHeight = bgImage.getHeight(this);
-
-                    if (imgWidth > 0 && imgHeight > 0) {
-                        double panelRatio = (double) getWidth() / getHeight();
-                        double imgRatio = (double) imgWidth / imgHeight;
-
-                        int drawWidth, drawHeight;
-
-                        if (panelRatio > imgRatio) {
-                            drawHeight = getHeight();
-                            drawWidth = (int) (drawHeight * imgRatio);
-                        } else {
-                            drawWidth = getWidth();
-                            drawHeight = (int) (drawWidth / imgRatio);
-                        }
-
-                        int x = (getWidth() - drawWidth) / 2;
-                        int y = (getHeight() - drawHeight) / 2;
-
-                        g.drawImage(bgImage, x, y, drawWidth, drawHeight, this);
+                    int iw = bgImage.getWidth(this);
+                    int ih = bgImage.getHeight(this);
+                    if (iw > 0 && ih > 0) {
+                        double pr = (double) getWidth() / getHeight();
+                        double ir = (double) iw / ih;
+                        int dw, dh;
+                        if (pr > ir) { dh = getHeight(); dw = (int) (dh * ir); }
+                        else          { dw = getWidth(); dh = (int) (dw / ir); }
+                        int x = (getWidth() - dw) / 2;
+                        int y = (getHeight() - dh) / 2;
+                        g.drawImage(bgImage, x, y, dw, dh, this);
                     }
                 }
             };
 
             loginPanel.setLayout(new GridBagLayout());
             GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(15, 15, 15, 15);
+            gbc.insets = new Insets(10,10,10,10);
 
-            JLabel userLabel = new JLabel("USERNAME:");
-    userLabel.setForeground(Color.WHITE);
-    gbc.gridx = 0; gbc.gridy = 0;
-    loginPanel.add(userLabel, gbc);
+            // Fields
+            JTextField nameField = new JTextField(15);
+            JTextField usernameField = new JTextField(15);
+            JPasswordField passwordField = new JPasswordField(15);
+            JPasswordField rePasswordField = new JPasswordField(15);
 
+            JTextField[] allFields = { nameField, usernameField, passwordField, rePasswordField };
+            for (JTextField f : allFields) {
+                f.setFont(customFont.deriveFont(Font.PLAIN, 15f));
+                f.setOpaque(false);
+                f.setBorder(new LineBorder(Color.WHITE, 2, true));
+            }
 
-            JTextField usernameField = new JTextField(10);
-    usernameField.setPreferredSize(new Dimension(220, 35)); // enough height
-    usernameField.setMargin(new Insets(5, 10, 5, 10));
-    gbc.gridx = 1; gbc.gridy = 0;
-    loginPanel.add(usernameField, gbc);
+            // Add placeholders (sets placeholder text + color + echo handling)
+            addPlaceholder(nameField, "Enter name");
+            addPlaceholder(usernameField, "Enter username");
+            addPlaceholder(passwordField, "Enter password");
+            addPlaceholder(rePasswordField, "Re-enter password");
 
+            // Initially SignIn only
+            nameField.setVisible(false);
+            rePasswordField.setVisible(false);
 
-             JLabel passLabel = new JLabel("PASSWORD:");
-    passLabel.setForeground(Color.WHITE);
-    gbc.gridx = 0; gbc.gridy = 1;
-    loginPanel.add(passLabel, gbc);
+            gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+            loginPanel.add(nameField, gbc); gbc.gridy++;
+            loginPanel.add(usernameField, gbc); gbc.gridy++;
+            loginPanel.add(passwordField, gbc); gbc.gridy++;
+            loginPanel.add(rePasswordField, gbc);
 
+            JLabel messageLabel = new JLabel("");
+            messageLabel.setForeground(Color.RED);
+            messageLabel.setFont(customFont.deriveFont(Font.PLAIN, 14f));
+            messageLabel.setVisible(false);
+            gbc.gridy++;
+            loginPanel.add(messageLabel, gbc);
 
-            JPasswordField passwordField = new JPasswordField(10);
-    passwordField.setPreferredSize(new Dimension(220, 35));
-    passwordField.setMargin(new Insets(5, 10, 5, 10));
-    gbc.gridx = 1; gbc.gridy = 1;
-    loginPanel.add(passwordField, gbc);
+            JButton signInButton = new JButton("Sign In");
+            JButton signUpButton = new JButton("Sign Up");
+            JButton submitButton = new JButton("Submit");
+            JButton cancelButton = new JButton("Cancel");
 
-            JButton loginButton = new JButton("LOGIN");
-            Color translucentBlue = new Color(0, 0, 0, 0); // alpha 120/255
-    loginButton.setForeground(Color.WHITE);
-    loginButton.setBackground(translucentBlue);
-    loginButton.setOpaque(false);
-    loginButton.setContentAreaFilled(false);
-    gbc.gridx = 0; gbc.gridy = 2;
-    loginPanel.add(loginButton, gbc);
+            submitButton.setVisible(false);
+            cancelButton.setVisible(false);
 
+            styleButton(signInButton, customFont);
+            styleButton(signUpButton, customFont);
+            styleButton(submitButton, customFont);
+            styleButton(cancelButton, customFont);
 
-            JButton signupButton = new JButton("SIGNUP");
-            Color translucentBlue1 = new Color(0, 0, 0, 0); // alpha 120/255
-            signupButton.setForeground(Color.WHITE);
-    signupButton.setBackground(translucentBlue1);
-    signupButton.setOpaque(false);
-    signupButton.setContentAreaFilled(false);
-    gbc.gridx = 1; gbc.gridy = 2;
-    loginPanel.add(signupButton, gbc);
+            gbc.gridy++; gbc.gridwidth = 1; gbc.gridx = 0;
+            loginPanel.add(signInButton, gbc); gbc.gridx = 1;
+            loginPanel.add(signUpButton, gbc); gbc.gridx = 0;
+            loginPanel.add(submitButton, gbc); gbc.gridx = 1;
+            loginPanel.add(cancelButton, gbc);
 
             frame.add(loginPanel);
             frame.setVisible(true);
 
-            // --- Login Action ---
-            loginButton.addActionListener(e -> {
+            // Ensure frame has focus, not the first field (invokeLater to be reliable)
+            SwingUtilities.invokeLater(() -> {
+                frame.setFocusable(true);
+                frame.requestFocusInWindow();
+            });
+
+            // Clear messages when typing begins
+            KeyAdapter hideMsg = new KeyAdapter() {
+                @Override
+                public void keyTyped(KeyEvent e) {
+                    messageLabel.setText("");
+                    messageLabel.setVisible(false);
+                }
+            };
+            for (JTextField f : allFields) f.addKeyListener(hideMsg);
+
+            // --- SignIn ---
+            signInButton.addActionListener(e -> {
                 String username = usernameField.getText().trim();
                 String password = new String(passwordField.getPassword()).trim();
 
-                if (username.isEmpty() || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(frame, "Username and Password cannot be empty!");
+                if (isEmptyOrPlaceholder(usernameField) || isEmptyOrPlaceholder(passwordField)) {
+                    messageLabel.setForeground(Color.RED);
+                    messageLabel.setText("Username and Password cannot be empty!");
+                    messageLabel.setVisible(true);
                     return;
                 }
 
-                int playerId = PlayerDAO.login(username, password);
-                if (playerId != -1) {
-                    JOptionPane.showMessageDialog(frame, "Login Successful!");
+                Player player = PlayerDAO.login(username, password);
+                if (player != null) {
                     frame.getContentPane().removeAll();
-                    frame.add(new HomeMenuPanel(frame, playerId, username));
-                    frame.revalidate();
-                    frame.repaint();
+                    frame.add(new HomeMenuPanel(frame, player.getId(), player.getUsername(), player.getName()));
+                    frame.revalidate(); frame.repaint();
                 } else {
-                    JOptionPane.showMessageDialog(frame, "Invalid credentials!");
+                    messageLabel.setForeground(Color.RED);
+                    messageLabel.setText("Invalid credentials!");
+                    messageLabel.setVisible(true);
                 }
             });
 
-            // --- Signup Action ---
-            signupButton.addActionListener(e -> {
-                String username = usernameField.getText().trim();
-                String password = new String(passwordField.getPassword()).trim();
+            // --- Enter SignUp mode ---
+            signUpButton.addActionListener(e -> {
+                messageLabel.setText(""); messageLabel.setVisible(false);
 
-                if (username.isEmpty() || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(frame, "Username and Password cannot be empty!");
+                nameField.setVisible(true);
+                rePasswordField.setVisible(true);
+                submitButton.setVisible(true);
+                cancelButton.setVisible(true);
+                signInButton.setVisible(false);
+                signUpButton.setVisible(false);
+
+                // reset placeholders/values for all fields
+                for (JTextField f : allFields) resetField(f);
+
+                loginPanel.revalidate();
+                loginPanel.repaint();
+            });
+
+            // --- Submit SignUp ---
+            submitButton.addActionListener(e -> {
+                messageLabel.setText(""); messageLabel.setVisible(false);
+
+                if (isEmptyOrPlaceholder(nameField) || isEmptyOrPlaceholder(usernameField) ||
+                        isEmptyOrPlaceholder(passwordField) || isEmptyOrPlaceholder(rePasswordField)) {
+                    messageLabel.setForeground(Color.RED);
+                    messageLabel.setText("All fields are required!");
+                    messageLabel.setVisible(true);
                     return;
                 }
+
+                String username = usernameField.getText().trim();
+                String password = new String(passwordField.getPassword()).trim();
+                String rePassword = new String(rePasswordField.getPassword()).trim();
+                String name = nameField.getText().trim();
 
                 if (!Pattern.matches("[a-zA-Z0-9_]{3,15}", username)) {
-                    JOptionPane.showMessageDialog(frame, "Username must be 3-15 characters and contain only letters, numbers, or underscore!");
+                    messageLabel.setForeground(Color.RED);
+                    messageLabel.setText("Username must be 3-15 characters (letters, numbers, underscore).");
+                    messageLabel.setVisible(true);
                     return;
                 }
-
                 if (password.length() < 6) {
-                    JOptionPane.showMessageDialog(frame, "Password must be at least 6 characters!");
+                    messageLabel.setForeground(Color.RED);
+                    messageLabel.setText("Password must be at least 6 characters!");
+                    messageLabel.setVisible(true);
+                    return;
+                }
+                if (!password.equals(rePassword)) {
+                    messageLabel.setForeground(Color.RED);
+                    messageLabel.setText("Passwords do not match!");
+                    messageLabel.setVisible(true);
                     return;
                 }
 
-                boolean ok = PlayerDAO.signup(username, password);
-                if (!ok) {
-                    JOptionPane.showMessageDialog(frame, "Username already exists or signup failed!");
+                Player player = PlayerDAO.signup(username, password, name);
+                if (player != null) {
+                    messageLabel.setForeground(Color.GREEN);
+                    messageLabel.setText("Signup successful! Redirecting to Sign In...");
+                    messageLabel.setVisible(true);
+
+                    // Reset to SignIn screen
+                    resetToLogin(nameField, usernameField, passwordField, rePasswordField,
+                            messageLabel, signInButton, signUpButton, submitButton, cancelButton);
+                } else {
+                    messageLabel.setForeground(Color.RED);
+                    messageLabel.setText("Username already exists or signup failed!");
+                    messageLabel.setVisible(true);
                 }
             });
+
+            // --- Cancel SignUp ---
+            cancelButton.addActionListener(e -> {
+                messageLabel.setText(""); messageLabel.setVisible(false);
+                resetToLogin(nameField, usernameField, passwordField, rePasswordField,
+                        messageLabel, signInButton, signUpButton, submitButton, cancelButton);
+            });
+
         });
+    }
+
+    // placeholder utility: initialize placeholder text + focus handling
+    private static void addPlaceholder(JTextField field, String placeholder) {
+        placeholders.put(field, placeholder);
+        resetField(field);
+
+        field.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (field.getText().equals(placeholders.get(field))) {
+                    field.setText("");
+                    field.setForeground(Color.WHITE);
+                    if (field instanceof JPasswordField jPasswordField) jPasswordField.setEchoChar('\u2022');
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (field.getText().isEmpty()) {
+                    resetField(field);
+                }
+            }
+        });
+    }
+
+    // set placeholder text and style (gray + hide echo for password)
+    private static void resetField(JTextField field) {
+        String placeholder = placeholders.getOrDefault(field, "");
+        field.setText(placeholder);
+        field.setForeground(Color.GRAY);
+        if (field instanceof JPasswordField jPasswordField) jPasswordField.setEchoChar((char) 0);
+    }
+
+    // return true when field is logically empty (ignoring placeholder)
+    private static boolean isEmptyOrPlaceholder(JTextField field) {
+        if (field instanceof JPasswordField pf) {
+            String val = new String(pf.getPassword()).trim();
+            return val.isEmpty() || pf.getEchoChar() == 0;
+        } else {
+            String val = field.getText().trim();
+            return val.isEmpty() || val.equals(placeholders.getOrDefault(field, ""));
+        }
+    }
+
+    private static void resetToLogin(JTextField nameField, JTextField usernameField,
+                                     JPasswordField passwordField, JPasswordField rePasswordField,
+                                     JLabel messageLabel, JButton signInButton, JButton signUpButton,
+                                     JButton submitButton, JButton cancelButton) {
+        for (JTextField f : new JTextField[] { nameField, usernameField, passwordField, rePasswordField }) {
+            resetField(f);
+        }
+
+        nameField.setVisible(false);
+        rePasswordField.setVisible(false);
+        submitButton.setVisible(false);
+        cancelButton.setVisible(false);
+        signInButton.setVisible(true);
+        signUpButton.setVisible(true);
+        messageLabel.setText(""); messageLabel.setVisible(false);
+
+        nameField.getParent().revalidate();
+        nameField.getParent().repaint();
+    }
+
+    private static void styleButton(JButton button, Font font) {
+        button.setForeground(Color.WHITE);
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setFont(font.deriveFont(Font.BOLD, 18f));
     }
 }

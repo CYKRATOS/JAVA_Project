@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
 public class Spike {
+    private int velX = 0, velY = 0;
     private final Rectangle rect;
     private final int startX, startY;
 
@@ -67,6 +68,10 @@ public class Spike {
     public void setSpikeColor(Color color) {
         this.spikeColor = color;
     }
+    public void setVelocity(int velX, int velY) {
+    this.velX = velX;
+    this.velY = velY;
+    }
 
     // -----------------------
     // Reset & Update
@@ -79,6 +84,9 @@ public class Spike {
     }
 
     public void update() {
+        rect.x += velX;
+        rect.y += velY;
+
         if (reactive && triggered && movedSoFar < moveDistance) {
             int step = 4; // pixels per frame
             rect.x += step * direction;

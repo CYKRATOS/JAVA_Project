@@ -50,6 +50,12 @@ public class GamePanel extends JPanel implements ActionListener {
     private List<Coin> coins;
     private boolean spikeActivated = false;
 
+    // Level 3 specific
+    private boolean doorEventTriggered = false;
+    private boolean level3SpikeSpawned = false;
+    private Spike level3Spike;
+    private final int LEVEL3_SPIKE_SPEED = 5;
+
     // Pause/Resume/Quit
     private boolean isPaused = false;
     private JButton pauseResumeButton;
@@ -300,6 +306,42 @@ public void setLevelIndex(int index) {
     }
 }
 
+case 2 -> { // Level 3 logic
+    // Trigger door teleport and spike
+    if (!doorEventTriggered && playerRect.intersects(door)) {
+        doorEventTriggered = true;
+
+        // Teleport door to left side
+        door.x = 50; // left side of the screen
+        // Optionally keep same y-position
+        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/door_teleport.wav");
+    }
+
+    // Spawn moving spike from right after door event
+    if (doorEventTriggered && !level3SpikeSpawned) {
+        level3Spike = new Spike(panelWidth, panelHeight - groundHeight - 40, 60, 40); // y-position near ground
+        level3Spike.setVelocity(-LEVEL3_SPIKE_SPEED, 0); // move left
+        level3SpikeSpawned = true;
+    }
+
+    // Update moving spike
+  level3Spike.update();
+if (playerRect.intersects(level3Spike.getRect())) {
+    soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
+    resetLevel();
+    return;
+}
+
+
+    // Check if player reaches the new door position
+    if (playerRect.intersects(door)) {
+        score += 100;
+        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
+        loadNextLevel();
+        return;
+    }
+}
+
             default -> {
                 // Generic spikes for other levels
                 for (Spike spike : spikes) {
@@ -346,6 +388,10 @@ public void setLevelIndex(int index) {
         // Level 2 coins
         if (levelIndex == 1) {
             for (Coin coin : coins) if (!coin.isCollected()) coin.draw(g2);
+        }
+
+        if (levelIndex == 2 && level3Spike != null) {
+            level3Spike.draw(g2);
         }
 
         // Door
