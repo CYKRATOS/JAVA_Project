@@ -68,7 +68,6 @@ public class GamePanel extends JPanel implements ActionListener {
     private Spike level3Spike;
 
     // ----------------- Level 4 (Sliding door) state -----------------
-// These fields control the sliding/teleport behavior for level 4 (index 3)
 private int level4DoorState = 0;         // 0 = untouched, 1 = moved once, 2 = moved twice, 3 = teleported
 private boolean level4DoorSliding = false;
 private int level4SlideTargetX = 0;
@@ -145,7 +144,7 @@ private final int LEVEL4_PROXIMITY = 200; // player proximity to trigger
 am.put("left", new AbstractAction() {
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (levelIndex == 4) {
+        if (levelIndex == 4 || levelIndex == 5) {
             // In Level 5: reverse controls → LEFT key moves right
             velX = PLAYER_SPEED;
         } else {
@@ -158,7 +157,7 @@ im.put(KeyStroke.getKeyStroke("RIGHT"), "right");
 am.put("right", new AbstractAction() {
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (levelIndex == 4) {
+        if (levelIndex == 4 || levelIndex == 5) {
             // In Level 5: reverse controls → RIGHT key moves left
             velX = -PLAYER_SPEED;
         } else {
@@ -233,6 +232,14 @@ am.put("stopRight", new AbstractAction() {
         level4LastDoorXBeforeSlide = 0;
         level4SlideTargetX = 0;
     }
+
+if (levelIndex == 5) { // Level 6
+    playerX = panelWidth - PLAYER_SIZE - 50; // right side
+    playerY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT;
+} else {
+    playerX = panelWidth / 20; // default for other levels
+    playerY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT;
+}
 
     // ---------------- Level 2 coins ----------------
     if (levelIndex == 1) {
@@ -437,6 +444,44 @@ case 4 -> {
     }
 
     // 2. Check door collision (level complete)
+    if (playerRect.intersects(door)) {
+        score += 100;
+        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
+        loadNextLevel();
+        return;
+    }
+}
+
+case 5 -> {
+    // ---------- LEVEL 6: Right-to-Left + Sliding Spikes (4 spikes) ----------
+
+    // Update all spikes and check collisions
+    for (Spike spike : spikes) {
+        spike.update();
+        if (playerRect.intersects(spike.getRect())) {
+            soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
+            resetLevel();
+            return;
+        }
+    }
+
+    // Sliding triggers for first and last spikes
+    int proximity = 150;       // trigger distance
+    int slideDistance = 50;   // pixels to slide
+    Spike firstSpike = spikes.get(0);
+    Spike lastSpike = spikes.get(spikes.size() - 1);
+
+    if (!firstSpike.isSliding() && Math.abs(playerX - firstSpike.getRect().x) <= proximity) {
+        firstSpike.startSliding(slideDistance);
+        firstSpike.setDirection(1); // slide to the right
+    }
+
+    if (!lastSpike.isSliding() && Math.abs(playerX - lastSpike.getRect().x) <= proximity) {
+        lastSpike.startSliding(slideDistance);
+        lastSpike.setDirection(1); // slide to the right
+    }
+
+    // Door collision: complete level
     if (playerRect.intersects(door)) {
         score += 100;
         soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");

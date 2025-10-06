@@ -44,13 +44,16 @@ public class Levels {
             new Rectangle(panelWidth - 600, panelHeight - groundHeight - 80, 40, 80) // Door
         ));
 
-        // Level 6 (example)
-        levels.add(new Level(
-            List.of(
-                new Spike(panelWidth / 3, panelHeight - groundHeight - 40, 60, 40, 0)
-            ),
-            new Rectangle(panelWidth - 100, panelHeight - groundHeight - 80, 40, 80) // Door
-        ));
+        // Level 6
+levels.add(new Level(
+    List.of(
+        new Spike(panelWidth / 5, panelHeight - groundHeight - 40, 60, 40),
+        new Spike(2 * panelWidth / 5, panelHeight - groundHeight - 40, 60, 40),
+        new Spike(3 * panelWidth / 5, panelHeight - groundHeight - 40, 60, 40),
+        new Spike(4 * panelWidth / 5, panelHeight - groundHeight - 40, 60, 40)
+    ),
+    new Rectangle(50, panelHeight - groundHeight - 80, 40, 80) // Door on left
+));
 
         // Level 7 (example)
         levels.add(new Level(

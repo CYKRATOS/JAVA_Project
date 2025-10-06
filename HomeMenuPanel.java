@@ -23,7 +23,7 @@ import javax.swing.plaf.FontUIResource;
 public class HomeMenuPanel extends JPanel {
 
     private Image bgImage;
-    private final String playerName;
+    //private final String playerName;
 
     // Static flag to play splash only once
     private static boolean splashPlayed = false;
@@ -34,7 +34,7 @@ public class HomeMenuPanel extends JPanel {
     }
 
     public HomeMenuPanel(JFrame frame, int playerId, String username, String name) {
-        this.playerName = (name != null && !name.isEmpty()) ? name : username;
+        //this.playerName = (name != null && !name.isEmpty()) ? name : username;
 
         setLayout(null);
         setOpaque(false);
@@ -109,7 +109,7 @@ public class HomeMenuPanel extends JPanel {
         // Title label
         JLabel title = new JLabel(
                 "<html><span style='color: #007BFF;'>ENIGMA</span> - "
-                        + "<span style='color: #007BFF;'>Welcome " + escapeHtml(playerName) + "</span></html>",
+                        + "<span style='color: #007BFF;'>Welcome " + escapeHtml(username) + "</span></html>",
                 SwingConstants.CENTER);
         title.setFont(customFont.deriveFont(Font.BOLD, 60f));
         title.setBounds(0, 80, panelWidth, 100);
