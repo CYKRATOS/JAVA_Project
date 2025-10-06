@@ -85,7 +85,7 @@ public class GameLauncher {
 
             loginPanel.setLayout(new GridBagLayout());
             GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(10,10,10,10);;
+            gbc.insets = new Insets(10,10,10,10);
 
             // Buttons dimensions
             int buttonWidth = 150;
