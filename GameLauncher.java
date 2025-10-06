@@ -196,11 +196,12 @@ public class GameLauncher {
         }
 
         Player player = PlayerDAO.login(username, password);
-        if (player != null) {
-            frame.getContentPane().removeAll();
-            frame.add(new HomeMenuPanel(frame, player.getId(), player.getUsername(), player.getName()));
-            frame.revalidate(); frame.repaint();
-        } else {
+if (player != null) {
+    frame.getContentPane().removeAll();
+    frame.add(new HomeMenuPanel(frame, player)); // ✅ pass the Player object
+    frame.revalidate();
+    frame.repaint();
+}else {
             messageLabel.setForeground(Color.RED);
             messageLabel.setText("Invalid credentials!");
             messageLabel.setVisible(true);
@@ -268,7 +269,7 @@ public class GameLauncher {
                 Player player = PlayerDAO.signup(username, password, name);
                 if (player != null) {
                     messageLabel.setForeground(Color.GREEN);
-                    messageLabel.setText("Signup successful! Redirecting to Sign In...");
+                    //messageLabel.setText("Signup successful! Redirecting to Sign In...");
                     messageLabel.setVisible(true);
 
                     resetToLogin(nameField, usernameField, passwordField, rePasswordField,

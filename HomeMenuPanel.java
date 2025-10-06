@@ -21,61 +21,54 @@ import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
 public class HomeMenuPanel extends JPanel {
-
+    private final Player player;
     private Image bgImage;
-    //private final String playerName;
 
     // Static flag to play splash only once
     private static boolean splashPlayed = false;
 
-    // Backward-compatible constructor
-    public HomeMenuPanel(JFrame frame, int playerId, String username) {
-        this(frame, playerId, username, "Player");
-    }
-
-    public HomeMenuPanel(JFrame frame, int playerId, String username, String name) {
-        //this.playerName = (name != null && !name.isEmpty()) ? name : username;
-
+    // Constructor
+    public HomeMenuPanel(JFrame frame, Player player) {
+        this.player = player; // save player object
         setLayout(null);
         setOpaque(false);
 
-         if (!splashPlayed) { 
-            splashPlayed = true; 
+        if (!splashPlayed) {
+            splashPlayed = true;
 
-        // --- Splash Screen Panel ---
-        JPanel splashPanel = new JPanel(null);
-        splashPanel.setBackground(Color.BLACK);
+            // --- Splash Screen Panel ---
+            JPanel splashPanel = new JPanel(null);
+            splashPanel.setBackground(Color.BLACK);
 
-        JLabel gifLabel = new JLabel(new ImageIcon(
-                "E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro1.1.gif"));
-        gifLabel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
-                Toolkit.getDefaultToolkit().getScreenSize().height);
-        splashPanel.add(gifLabel);
+            JLabel gifLabel = new JLabel(new ImageIcon(
+                    "E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro1.1.gif"));
+            gifLabel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
+                    Toolkit.getDefaultToolkit().getScreenSize().height);
+            splashPanel.add(gifLabel);
 
-        splashPanel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
-                Toolkit.getDefaultToolkit().getScreenSize().height);
-        add(splashPanel);
-        revalidate();
-        repaint();
-
-        // --- Timer to remove splash after 3 seconds ---
-        Timer splashTimer = new Timer(1000, e -> {
-            remove(splashPanel);
-            ((Timer) e.getSource()).stop();
-            initHomeMenu(frame, playerId, username);
+            splashPanel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
+                    Toolkit.getDefaultToolkit().getScreenSize().height);
+            add(splashPanel);
             revalidate();
             repaint();
-        });
-        splashTimer.setRepeats(false);
-        splashTimer.start();
-    }else {
+
+            // --- Timer to remove splash after 3 seconds ---
+            Timer splashTimer = new Timer(8000, e -> { 
+                remove(splashPanel);
+                ((Timer) e.getSource()).stop();
+                initHomeMenu(frame);
+                revalidate();
+                repaint();
+            });
+            splashTimer.setRepeats(false);
+            splashTimer.start();
+        } else {
             // If splash already played, go straight to home menu
-            initHomeMenu(frame, playerId, username);
+            initHomeMenu(frame);
         }
     }
 
-    private void initHomeMenu(JFrame frame, int playerId, String username) {
-
+    private void initHomeMenu(JFrame frame) {
         // Load background image
         bgImage = new ImageIcon("E:/JAVA-PROJECT/DevilLevelGame/assets/HOME_2.jpg").getImage();
 
@@ -109,7 +102,7 @@ public class HomeMenuPanel extends JPanel {
         // Title label
         JLabel title = new JLabel(
                 "<html><span style='color: #007BFF;'>ENIGMA</span> - "
-                        + "<span style='color: #007BFF;'>Welcome " + escapeHtml(username) + "</span></html>",
+                        + "<span style='color: #007BFF;'>Welcome " + escapeHtml(player.getUsername()) + "</span></html>",
                 SwingConstants.CENTER);
         title.setFont(customFont.deriveFont(Font.BOLD, 60f));
         title.setBounds(0, 80, panelWidth, 100);
@@ -127,7 +120,6 @@ public class HomeMenuPanel extends JPanel {
         int totalWidth = cols * buttonWidth + (cols - 1) * spacingX;
         int startX = (panelWidth - totalWidth) / 2;
         int startY = panelHeight - bottomMargin - (rows * buttonHeight + (rows - 1) * spacingY);
-
         // --- Level buttons ---
         for (int i = 1; i <= 8; i++) {
             int row = (i - 1) / cols;
@@ -136,10 +128,17 @@ public class HomeMenuPanel extends JPanel {
             int y = startY + row * (buttonHeight + spacingY);
 
             JButton levelButton = createGlassButton("Level " + i, buttonFont);
+
+            // Disable locked levels
+            if (i != 1 && i > player.getLevelCleared() + 1) {
+                levelButton.setEnabled(false);
+            }
+
             final int levelIndex = i - 1;
             levelButton.setBounds(x, y, buttonWidth, buttonHeight);
             levelButton.addActionListener(ev -> {
-                GamePanel gamePanel = new GamePanel(playerId, username);
+                // ✅ Pass Player object, not ID/username
+                GamePanel gamePanel = new GamePanel(player);
                 gamePanel.setLevelIndex(levelIndex);
                 frame.getContentPane().removeAll();
                 frame.add(gamePanel);
@@ -189,7 +188,7 @@ public class HomeMenuPanel extends JPanel {
             @Override
             public void paint(Graphics g, javax.swing.JComponent c) {
                 Graphics g2 = g.create();
-                g2.setColor(button.getModel().isRollover() ? new Color(0, 123, 255, 200) : glassColor); //change the 200vlaue to adjust hover transparency
+                g2.setColor(button.getModel().isRollover() ? new Color(0, 123, 255, 200) : glassColor);
                 g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
                 super.paint(g2, c);
                 g2.dispose();

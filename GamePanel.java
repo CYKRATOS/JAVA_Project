@@ -1,11 +1,11 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-public class GamePanel extends JPanel implements ActionListener {
+public class GamePanel extends JPanel implements java.awt.event.ActionListener {
 
     private static final int PLAYER_SIZE = 50;
     private static final int PLAYER_SPEED = 5;
@@ -33,6 +33,7 @@ public class GamePanel extends JPanel implements ActionListener {
     private static final int LEVEL3_SPIKE_SPEED = 8;
 
     private final Timer timer;
+    private final Player player;
     private final SoundManager soundManager = new SoundManager();
 
     private int playerX = 100, playerY = 100;
@@ -60,24 +61,22 @@ public class GamePanel extends JPanel implements ActionListener {
     private final int panelHeight;
     private final int groundHeight;
 
-    private final int playerId;
-
     // Level 3 logic
     private boolean doorEventTriggered = false;
     private boolean level3SpikeSpawned = false;
     private Spike level3Spike;
 
-    // ----------------- Level 4 (Sliding door) state -----------------
-private int level4DoorState = 0;         // 0 = untouched, 1 = moved once, 2 = moved twice, 3 = teleported
-private boolean level4DoorSliding = false;
-private int level4SlideTargetX = 0;
-private int level4SlideSpeed = 8;        // pixels per frame when sliding (tweakable)
-private int level4LastDoorXBeforeSlide = 0;
-private final int LEVEL4_SLIDE_DISTANCE = 200;
-private final int LEVEL4_PROXIMITY = 200; // player proximity to trigger
+    // Level 4 sliding door
+    private int level4DoorState = 0;
+    private boolean level4DoorSliding = false;
+    private int level4SlideTargetX = 0;
+    private int level4SlideSpeed = 8;
+    private int level4LastDoorXBeforeSlide = 0;
+    private final int LEVEL4_SLIDE_DISTANCE = 200;
+    private final int LEVEL4_PROXIMITY = 200;
 
-    public GamePanel(int playerId, String username) {
-        this.playerId = playerId;
+    public GamePanel(Player player) { // now uses Player object
+        this.player = player;
 
         setLayout(null);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -98,13 +97,20 @@ private final int LEVEL4_PROXIMITY = 200; // player proximity to trigger
         quitButton.setFocusable(false);
         quitButton.setFont(quitButton.getFont().deriveFont(14f));
         quitButton.addActionListener(e -> {
-            saveTotalScore();
-            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            topFrame.getContentPane().removeAll();
-            topFrame.add(new HomeMenuPanel(topFrame, playerId, username));
-            topFrame.revalidate();
-            topFrame.repaint();
-        });
+    // Save current score
+    saveTotalScore();
+
+    // Refresh the player's cleared level from the database
+    int latestLevelCleared = PlayerDAO.getPlayerLevel(player.getId());
+    player.setLevelCleared(latestLevelCleared); // update Player object
+
+    // Switch back to Home Menu
+    JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+    frame.getContentPane().removeAll();
+    frame.add(new HomeMenuPanel(frame, player)); // Pass updated player object
+    frame.revalidate();
+    frame.repaint();
+});
         add(quitButton);
 
         // Pause button
@@ -141,49 +147,42 @@ private final int LEVEL4_PROXIMITY = 200; // player proximity to trigger
         });
 
         im.put(KeyStroke.getKeyStroke("LEFT"), "left");
-am.put("left", new AbstractAction() {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (levelIndex == 4 || levelIndex == 5) {
+        am.put("left", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (levelIndex == 4 || levelIndex == 5) {
             // In Level 5: reverse controls → LEFT key moves right
             velX = PLAYER_SPEED;
         } else {
             velX = -PLAYER_SPEED;
         }
-    }
-});
+            }
+        });
 
-im.put(KeyStroke.getKeyStroke("RIGHT"), "right");
-am.put("right", new AbstractAction() {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (levelIndex == 4 || levelIndex == 5) {
+        im.put(KeyStroke.getKeyStroke("RIGHT"), "right");
+        am.put("right", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (levelIndex == 4 || levelIndex == 5) {
             // In Level 5: reverse controls → RIGHT key moves left
             velX = -PLAYER_SPEED;
         } else {
             velX = PLAYER_SPEED;
         }
-    }
-});
+            }
+        });
 
-        // Stop movement when LEFT or RIGHT key is released
-im.put(KeyStroke.getKeyStroke("released LEFT"), "stopLeft");
-am.put("stopLeft", new AbstractAction() {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        // For all levels, just stop horizontal motion
-        velX = 0;
-    }
-});
+        im.put(KeyStroke.getKeyStroke("released LEFT"), "stopLeft");
+        am.put("stopLeft", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { velX = 0; }
+        });
 
-im.put(KeyStroke.getKeyStroke("released RIGHT"), "stopRight");
-am.put("stopRight", new AbstractAction() {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        // For all levels, just stop horizontal motion
-        velX = 0;
-    }
-});
+        im.put(KeyStroke.getKeyStroke("released RIGHT"), "stopRight");
+        am.put("stopRight", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { velX = 0; }
+        });
 
         im.put(KeyStroke.getKeyStroke("R"), "restart");
         am.put("restart", new AbstractAction() {
@@ -196,65 +195,50 @@ am.put("stopRight", new AbstractAction() {
     }
 
     private void resetLevel() {
-    Level lvl = levels.get(levelIndex);
+        Level lvl = levels.get(levelIndex);
 
-    // ---------------- Player Starting Position ----------------
-    if (levelIndex == 4) { // Level 5
-        // Horizontally center the player, vertically on the ground
-        playerX = (panelWidth - PLAYER_SIZE) / 2;
+        velX = velY = 0;
+        inAir = false;
+
+        spikes = new ArrayList<>(lvl.getSpikes());
+        spikes.forEach(Spike::reset);
+
+        door = new Rectangle(lvl.getDoor());
+
+        coins = new ArrayList<>();
+        spikeActivated = false;
+
+        doorEventTriggered = false;
+        level3SpikeSpawned = false;
+        level3Spike = null;
+
+        if (levelIndex == 3) {
+            level4DoorState = 0;
+            level4DoorSliding = false;
+            level4LastDoorXBeforeSlide = 0;
+            level4SlideTargetX = 0;
+        }
+
+        // Player starting position
+        playerX = switch (levelIndex) {
+            case 4 -> (panelWidth - PLAYER_SIZE) / 2;
+            case 5 -> panelWidth - PLAYER_SIZE - 50;
+            default -> panelWidth / 20;
+        };
+
         playerY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT;
-    } else {
-        // Default starting position for other levels
-        playerX = panelWidth / 20;
-        playerY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT;
-    }
 
-    velX = velY = 0;
-    inAir = false;
-
-    // ---------------- Level objects ----------------
-    spikes = new ArrayList<>(lvl.getSpikes());
-    spikes.forEach(Spike::reset);
-
-    door = new Rectangle(lvl.getDoor());
-
-    coins = new ArrayList<>();
-    spikeActivated = false;
-
-    // ---------------- Level 3 logic ----------------
-    doorEventTriggered = false;
-    level3SpikeSpawned = false;
-    level3Spike = null;
-
-    if (levelIndex == 3) { // Level 4
-        level4DoorState = 0;
-        level4DoorSliding = false;
-        level4LastDoorXBeforeSlide = 0;
-        level4SlideTargetX = 0;
-    }
-
-if (levelIndex == 5) { // Level 6
-    playerX = panelWidth - PLAYER_SIZE - 50; // right side
-    playerY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT;
-} else {
-    playerX = panelWidth / 20; // default for other levels
-    playerY = panelHeight - groundHeight - PLAYER_SIZE - LIFT_HEIGHT;
-}
-
-    // ---------------- Level 2 coins ----------------
-    if (levelIndex == 1) {
-        int numCoins = 11;
-        int coinSize = 40;
-        int spacing = 80;
-        int startX = panelWidth / 2 - ((numCoins - 1) * spacing) / 2;
-        int y = panelHeight - groundHeight - coinSize;
-        for (int i = 0; i < numCoins; i++) {
-            int x = startX + i * spacing;
-            coins.add(new Coin(x, y, coinSize, coinSize));
+        // Level 2 coins
+        if (levelIndex == 1) {
+            int numCoins = 11, coinSize = 40, spacing = 80;
+            int startX = panelWidth / 2 - ((numCoins - 1) * spacing) / 2;
+            int y = panelHeight - groundHeight - coinSize;
+            for (int i = 0; i < numCoins; i++) {
+                int x = startX + i * spacing;
+                coins.add(new Coin(x, y, coinSize, coinSize));
+            }
         }
     }
-}
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -489,7 +473,23 @@ case 5 -> {
         return;
     }
 }
+case 6 -> {
+    if (playerRect.intersects(door)) {
+        score += 100;
+        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
+        loadNextLevel();
+        return;
+    }
+}
 
+case 7 -> {
+    if (playerRect.intersects(door)) {
+        score += 100;
+        soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
+        loadNextLevel();
+        return;
+    }
+}
             default -> {
                 // Generic fallback: update spikes and check collisions
                 for (Spike spike : spikes) {
@@ -510,16 +510,17 @@ case 5 -> {
         if (levelIndex < levels.size() - 1) {
             levelIndex++;
             resetLevel();
+            if (levelIndex + 1 > player.getLevelCleared()) PlayerDAO.updatePlayerLevel(player.getId(), levelIndex + 1);
         } else {
             gameCompleted = true;
-            soundManager.stopMusic();
+            velX = velY = 0; inAir = false; soundManager.stopMusic();
+            PlayerDAO.updatePlayerLevel(player.getId(), levelIndex + 1);
             saveTotalScore();
+            repaint();
         }
     }
 
-    private void saveTotalScore() {
-        GameDAO.saveOrUpdateScore(playerId, score);
-    }
+    private void saveTotalScore() { GameDAO.saveOrUpdateScore(player.getId(), score); }
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -596,19 +597,35 @@ case 5 -> {
         g2.fillRect(playerX + (PLAYER_SIZE - bodyWidth) / 2 + bodyWidth - legWidth + legOffset,
                     playerY + headSize + bodyHeight, legWidth, legHeight);
 
-        // ---------------- Score ----------------
-        g2.setColor(Color.WHITE);
-        g2.drawString("Score: " + score, 20, 30);
+       // ---------------- Score ----------------
+g2.setColor(Color.WHITE);
+g2.drawString("Score: " + score, 20, 53);
 
+// ---------------- Level Indicator ----------------
+g2.setColor(Color.CYAN);
+g2.drawString("Level: " + (levelIndex + 1), 20, 25);
         // ---------------- Game Completed ----------------
-        if (gameCompleted) {
-            g2.setColor(Color.YELLOW);
-            g2.drawString("Congratulations! Game Completed!", panelWidth / 2 - 300, panelHeight / 2);
-        }
+        if (gameCompleted && levelIndex >= 7) { // after level 8
+    String msg1 = "Congratulations! Game Completed!";
+    String msg2 = "Final Score: " + score;
+
+    // Use your current font and derive a bigger version
+    Font bigFont = g2.getFont().deriveFont(Font.BOLD, 48f);
+    g2.setFont(bigFont);
+    g2.setColor(Color.YELLOW);
+
+    // Center horizontally
+    int msg1Width = g2.getFontMetrics().stringWidth(msg1);
+    int msg2Width = g2.getFontMetrics().stringWidth(msg2);
+
+    // Draw msg1 slightly above center, msg2 below
+    g2.drawString(msg1, (panelWidth - msg1Width) / 2, panelHeight / 2 - 20);
+    g2.drawString(msg2, (panelWidth - msg2Width) / 2, panelHeight / 2 + 40);
+}   
     }
 
     public void setLevelIndex(int levelIndex) {
-        this.levelIndex = levelIndex;
-        resetLevel();
-    }
+    this.levelIndex = levelIndex;
+    resetLevel();
+}
 }
