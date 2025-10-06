@@ -53,7 +53,7 @@ public class GameLauncher {
                 customFont = new Font("SansSerif", Font.BOLD, 15);
             }
 
-            JFrame frame = new JFrame("Equilibrium");
+            JFrame frame = new JFrame("ENIGMA");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
@@ -85,21 +85,20 @@ public class GameLauncher {
 
             loginPanel.setLayout(new GridBagLayout());
             GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(10,10,10,10);
-
-            // Field dimensions
-            int fieldWidth = 150;
-            int fieldHeight = 40;
+            gbc.insets = new Insets(10,10,10,10);;
 
             // Buttons dimensions
             int buttonWidth = 150;
             int buttonHeight = 45;
 
+            int fieldWidth = buttonWidth;
+            int fieldHeight = buttonHeight;
+
             // Fields
-            JTextField nameField = new JTextField(10);
-            JTextField usernameField = new JTextField(10);
-            JPasswordField passwordField = new JPasswordField(10);
-            JPasswordField rePasswordField = new JPasswordField(10);
+            JTextField nameField = new JTextField(9);
+            JTextField usernameField = new JTextField(9);
+            JPasswordField passwordField = new JPasswordField(9);
+            JPasswordField rePasswordField = new JPasswordField(9);
 
             JTextField[] allFields = { nameField, usernameField, passwordField, rePasswordField };
             
@@ -115,7 +114,7 @@ public class GameLauncher {
             addPlaceholder(nameField, "Name");
             addPlaceholder(usernameField, "Username");
             addPlaceholder(passwordField, "Password");
-            addPlaceholder(rePasswordField, "Re-enter password");
+            addPlaceholder(rePasswordField, "Re-enter again");
 
             gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
             loginPanel.add(nameField, gbc); gbc.gridy++;
@@ -146,6 +145,8 @@ public class GameLauncher {
             // Make SignIn and SignUp buttons same size
             signInButton.setPreferredSize(new java.awt.Dimension(buttonWidth, buttonHeight));
             signUpButton.setPreferredSize(new java.awt.Dimension(buttonWidth, buttonHeight));
+            submitButton.setPreferredSize(new java.awt.Dimension(buttonWidth, buttonHeight)); // added
+            cancelButton.setPreferredSize(new java.awt.Dimension(buttonWidth, buttonHeight)); // added
 
             gbc.gridy++; gbc.gridwidth = 2; gbc.gridx = 0;
             loginPanel.add(signInButton, gbc);
@@ -206,22 +207,27 @@ public class GameLauncher {
         }
     }
 });
-            // --- Enter SignUp mode ---
             signUpButton.addActionListener(e -> {
-                messageLabel.setText(""); messageLabel.setVisible(false);
+    messageLabel.setText(""); 
+    messageLabel.setVisible(false);
 
-                nameField.setVisible(true);
-                rePasswordField.setVisible(true);
-                submitButton.setVisible(true);
-                cancelButton.setVisible(true);
-                signInButton.setVisible(false);
-                signUpButton.setVisible(false);
+    // Show all 4 fields for Sign Up
+    nameField.setVisible(true);
+    usernameField.setVisible(true);
+    passwordField.setVisible(true);
+    rePasswordField.setVisible(true);
 
-                for (JTextField f : allFields) resetField(f);
+    submitButton.setVisible(true);
+    cancelButton.setVisible(true);
+    signInButton.setVisible(false);
+    signUpButton.setVisible(false);
 
-                loginPanel.revalidate();
-                loginPanel.repaint();
-            });
+    // Reset all fields to placeholder
+    for (JTextField f : allFields) resetField(f);
+
+    loginPanel.revalidate();
+    loginPanel.repaint();
+});
 
             // --- Submit SignUp ---
             submitButton.addActionListener(e -> {
@@ -310,7 +316,7 @@ public class GameLauncher {
     private static void resetField(JTextField field) {
         String placeholder = placeholders.getOrDefault(field, "");
         field.setText(placeholder);
-        field.setForeground(Color.GRAY);
+        field.setForeground(new Color(0, 191, 255));
         if (field instanceof JPasswordField jPasswordField) jPasswordField.setEchoChar((char) 0);
     }
 

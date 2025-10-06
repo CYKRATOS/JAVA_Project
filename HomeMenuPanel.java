@@ -47,7 +47,7 @@ public class HomeMenuPanel extends JPanel {
         splashPanel.setBackground(Color.BLACK);
 
         JLabel gifLabel = new JLabel(new ImageIcon(
-                "E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro.gif"));
+                "E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro1.1.gif"));
         gifLabel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
                 Toolkit.getDefaultToolkit().getScreenSize().height);
         splashPanel.add(gifLabel);
@@ -59,7 +59,7 @@ public class HomeMenuPanel extends JPanel {
         repaint();
 
         // --- Timer to remove splash after 3 seconds ---
-        Timer splashTimer = new Timer(6500, e -> {
+        Timer splashTimer = new Timer(1000, e -> {
             remove(splashPanel);
             ((Timer) e.getSource()).stop();
             initHomeMenu(frame, playerId, username);
@@ -108,7 +108,7 @@ public class HomeMenuPanel extends JPanel {
 
         // Title label
         JLabel title = new JLabel(
-                "<html><span style='color: #007BFF;'>EQUILIBRIUM</span> - "
+                "<html><span style='color: #007BFF;'>ENIGMA</span> - "
                         + "<span style='color: #007BFF;'>Welcome " + escapeHtml(playerName) + "</span></html>",
                 SwingConstants.CENTER);
         title.setFont(customFont.deriveFont(Font.BOLD, 60f));
@@ -170,7 +170,7 @@ public class HomeMenuPanel extends JPanel {
         button.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
 
         Color glassColor = new Color(255, 255, 255, 30);
-        Color hoverBorderColor = new Color(57, 255, 20);
+        Color hoverBorderColor = new Color(0, 123, 255);
         Color defaultBorder = Color.WHITE;
 
         button.addChangeListener(e -> {
@@ -189,7 +189,7 @@ public class HomeMenuPanel extends JPanel {
             @Override
             public void paint(Graphics g, javax.swing.JComponent c) {
                 Graphics g2 = g.create();
-                g2.setColor(glassColor);
+                g2.setColor(button.getModel().isRollover() ? new Color(0, 123, 255, 200) : glassColor); //change the 200vlaue to adjust hover transparency
                 g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
                 super.paint(g2, c);
                 g2.dispose();

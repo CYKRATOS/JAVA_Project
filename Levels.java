@@ -47,10 +47,9 @@ public class Levels {
         // Level 6 (example)
         levels.add(new Level(
             List.of(
-                new Spike(panelWidth / 2, panelHeight - groundHeight - 40, 60, 40, -1), // Spike 2 - moves LEFT
-                new Spike(3 * panelWidth / 4, panelHeight - groundHeight - 40, 60, 40, 1) // Spike 3 - moves RIGHT
+                new Spike(panelWidth / 3, panelHeight - groundHeight - 40, 60, 40, 0)
             ),
-            new Rectangle(panelWidth - 150, panelHeight - groundHeight - 80, 40, 80) // Door
+            new Rectangle(panelWidth - 100, panelHeight - groundHeight - 80, 40, 80) // Door
         ));
 
         // Level 7 (example)
