@@ -1,10 +1,25 @@
 import java.io.File;
 import java.io.IOException;
-import javax.sound.sampled.*;
+
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class SoundManager {
 
     private Clip musicClip;
+    private static SoundManager instance; // ✅ shared instance
+    private SoundManager() {} // private constructor
+
+    // ✅ Access point for global instance
+    public static SoundManager getInstance() {
+        if (instance == null) {
+            instance = new SoundManager();
+        }
+        return instance;
+    }
 
     // --- Play WAV effect (jump, death, door) ---
     public void playSound(String filePath) {
@@ -25,7 +40,9 @@ public class SoundManager {
 
     // --- Play WAV background music (looped) ---
     public void playMusic(String filePath) {
-        stopMusic(); // stop previous music
+       if (musicClip != null && musicClip.isRunning()) {
+            return;
+        }
 
         try {
             File musicFile = new File(filePath);

@@ -34,7 +34,7 @@ public class GamePanel extends JPanel implements java.awt.event.ActionListener {
 
     private final Timer timer;
     private final Player player;
-    private final SoundManager soundManager = new SoundManager();
+    private final SoundManager soundManager = SoundManager.getInstance();
 
     private int playerX = 100, playerY = 100;
     private int velX = 0, velY = 0;
@@ -401,7 +401,7 @@ case 3 -> {
             // third approach: teleport left
             door.x = 10; // leftmost side
             level4DoorState = 3;
-            //soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/teleport.wav");
+            soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/teleport.wav");
         }
     }
 
@@ -533,7 +533,7 @@ for (Spike spike : spikes) {
             if (levelIndex + 1 > player.getLevelCleared()) PlayerDAO.updatePlayerLevel(player.getId(), levelIndex + 1);
         } else {
             gameCompleted = true;
-            velX = velY = 0; inAir = false; soundManager.stopMusic();
+            velX = velY = 0; inAir = false; SoundManager.getInstance().stopMusic(); // use singleton
             PlayerDAO.updatePlayerLevel(player.getId(), levelIndex + 1);
             saveTotalScore();
             repaint();
@@ -627,7 +627,6 @@ g2.drawString("Level: " + (levelIndex + 1), 20, 25);
         // ---------------- Game Completed ----------------
         if (gameCompleted && levelIndex >= 7) { // after level 8
     String msg1 = "Congratulations! Game Completed!";
-    String msg2 = "Final Score: " + score;
 
     // Use your current font and derive a bigger version
     Font bigFont = g2.getFont().deriveFont(Font.BOLD, 48f);
@@ -636,11 +635,9 @@ g2.drawString("Level: " + (levelIndex + 1), 20, 25);
 
     // Center horizontally
     int msg1Width = g2.getFontMetrics().stringWidth(msg1);
-    int msg2Width = g2.getFontMetrics().stringWidth(msg2);
 
     // Draw msg1 slightly above center, msg2 below
     g2.drawString(msg1, (panelWidth - msg1Width) / 2, panelHeight / 2 - 20);
-    g2.drawString(msg2, (panelWidth - msg2Width) / 2, panelHeight / 2 + 40);
 }   
     }
 

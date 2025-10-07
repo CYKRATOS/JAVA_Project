@@ -35,7 +35,10 @@ public class GameLauncher {
     private static final Map<JTextField, String> placeholders = new HashMap<>();
 
     public static void main(String[] args) {
+
         SwingUtilities.invokeLater(() -> {
+                    // Start background music immediately
+            SoundManager.getInstance().playMusic("E:/JAVA-PROJECT/DevilLevelGame/assets/game_bg.wav");
             // Load custom font
             Font customFont;
             try {

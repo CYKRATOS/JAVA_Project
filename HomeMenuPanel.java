@@ -23,10 +23,8 @@ import javax.swing.plaf.FontUIResource;
 public class HomeMenuPanel extends JPanel {
     private final Player player;
     private Image bgImage;
-
-    // Static flag to play splash only once
     private static boolean splashPlayed = false;
-
+    
     // Constructor
     public HomeMenuPanel(JFrame frame, Player player) {
         this.player = player; // save player object
@@ -52,11 +50,12 @@ public class HomeMenuPanel extends JPanel {
             revalidate();
             repaint();
 
-            // --- Timer to remove splash after 3 seconds ---
+            // --- Timer to remove splash after 8 seconds ---
             Timer splashTimer = new Timer(8000, e -> { 
                 remove(splashPanel);
                 ((Timer) e.getSource()).stop();
                 initHomeMenu(frame);
+                playBackgroundMusic(); // 🎵 start music after splash
                 revalidate();
                 repaint();
             });
@@ -65,6 +64,7 @@ public class HomeMenuPanel extends JPanel {
         } else {
             // If splash already played, go straight to home menu
             initHomeMenu(frame);
+            playBackgroundMusic(); // 🎵 start music immediately
         }
     }
 
@@ -120,6 +120,7 @@ public class HomeMenuPanel extends JPanel {
         int totalWidth = cols * buttonWidth + (cols - 1) * spacingX;
         int startX = (panelWidth - totalWidth) / 2;
         int startY = panelHeight - bottomMargin - (rows * buttonHeight + (rows - 1) * spacingY);
+
         // --- Level buttons ---
         for (int i = 1; i <= 8; i++) {
             int row = (i - 1) / cols;
@@ -137,7 +138,7 @@ public class HomeMenuPanel extends JPanel {
             final int levelIndex = i - 1;
             levelButton.setBounds(x, y, buttonWidth, buttonHeight);
             levelButton.addActionListener(ev -> {
-                // ✅ Pass Player object, not ID/username
+                stopBackgroundMusic(); // 🎵 stop when going to gameplay
                 GamePanel gamePanel = new GamePanel(player);
                 gamePanel.setLevelIndex(levelIndex);
                 frame.getContentPane().removeAll();
@@ -233,4 +234,14 @@ public class HomeMenuPanel extends JPanel {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
+
+    // 🎵 Background music functions
+    private void playBackgroundMusic() {
+    SoundManager.getInstance().playMusic("E:/JAVA-PROJECT/DevilLevelGame/assets/game_bg.wav");
+}
+
+    private void stopBackgroundMusic() {
+    SoundManager.getInstance().stopMusic();
+}
+
 }
