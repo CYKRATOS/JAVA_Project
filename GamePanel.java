@@ -474,6 +474,16 @@ case 5 -> {
     }
 }
 case 6 -> {
+
+for (Spike spike : spikes) {
+        spike.update();
+        if (playerRect.intersects(spike.getRect())) {
+            soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
+            resetLevel();
+            return;
+        }
+    }
+
     if (playerRect.intersects(door)) {
         score += 100;
         soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
@@ -483,6 +493,16 @@ case 6 -> {
 }
 
 case 7 -> {
+
+for (Spike spike : spikes) {
+        spike.update();
+        if (playerRect.intersects(spike.getRect())) {
+            soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/death.wav");
+            resetLevel();
+            return;
+        }
+    }
+
     if (playerRect.intersects(door)) {
         score += 100;
         soundManager.playSound("E:/JAVA-PROJECT/DevilLevelGame/assets/game-level-complete.wav");
