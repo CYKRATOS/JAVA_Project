@@ -1,3 +1,4 @@
+
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -33,6 +34,7 @@ import javax.swing.border.EmptyBorder;
 
 // Final Clean Modern Top 10 Leaderboard (no refresh/close buttons)
 public class LeaderboardApp extends JFrame {
+
     private final DefaultListModel<PlayerEntry> listModel = new DefaultListModel<>();
     private final JList<PlayerEntry> list = new JList<>(listModel);
     private int hoveredIndex = -1;
@@ -42,7 +44,8 @@ public class LeaderboardApp extends JFrame {
         // Use system look & feel for consistent UI
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ignored) {}
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ignored) {
+        }
 
         appFont = UIManager.getFont("Label.font").deriveFont(Font.PLAIN, 14f);
 
@@ -63,6 +66,7 @@ public class LeaderboardApp extends JFrame {
 
     // Gradient background and leaderboard card
     private class GradientBackgroundPanel extends JPanel {
+
         GradientBackgroundPanel() {
             setLayout(new GridBagLayout());
             setOpaque(true);
@@ -121,6 +125,7 @@ public class LeaderboardApp extends JFrame {
 
     // Rounded leaderboard card with shadow
     private class RoundedCardPanel extends JPanel {
+
         RoundedCardPanel() {
             setOpaque(false);
         }
@@ -154,9 +159,10 @@ public class LeaderboardApp extends JFrame {
 
     // Custom cell renderer for leaderboard entries
     private class LeaderboardCellRenderer implements ListCellRenderer<PlayerEntry> {
+
         @Override
         public Component getListCellRendererComponent(JList<? extends PlayerEntry> list,
-                                                      PlayerEntry value, int index, boolean isSelected, boolean cellHasFocus) {
+                PlayerEntry value, int index, boolean isSelected, boolean cellHasFocus) {
             JPanel row = new JPanel(new BorderLayout(8, 0));
             row.setOpaque(true);
             row.setBorder(new EmptyBorder(8, 10, 8, 10));
@@ -168,10 +174,14 @@ public class LeaderboardApp extends JFrame {
             rankLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
             switch (index) {
-                case 0 -> rankLabel.setText("1");
-                case 1 -> rankLabel.setText("2");
-                case 2 -> rankLabel.setText("3");
-                default -> rankLabel.setText(String.valueOf(index + 1));
+                case 0 ->
+                    rankLabel.setText("1");
+                case 1 ->
+                    rankLabel.setText("2");
+                case 2 ->
+                    rankLabel.setText("3");
+                default ->
+                    rankLabel.setText(String.valueOf(index + 1));
             }
 
             JLabel nameLabel = new JLabel(value.username);
@@ -210,6 +220,7 @@ public class LeaderboardApp extends JFrame {
 
     // Simple data holder
     private static class PlayerEntry {
+
         final String username;
         final int score;
 
@@ -223,13 +234,11 @@ public class LeaderboardApp extends JFrame {
     private void loadTop10Scores() {
         SwingUtilities.invokeLater(() -> {
             listModel.clear();
-            String sql = "SELECT p.username, s.score " +
-                         "FROM GameScores s " +
-                         "JOIN Players p ON s.player_id = p.id " +
-                         "ORDER BY s.score DESC LIMIT 10";
-            try (Connection conn = DBConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
+            String sql = "SELECT p.username, s.score "
+                    + "FROM GameScores s "
+                    + "JOIN Players p ON s.player_id = p.id "
+                    + "ORDER BY s.score DESC LIMIT 10";
+            try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
                 boolean any = false;
                 while (rs.next()) {

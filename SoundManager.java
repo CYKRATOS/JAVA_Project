@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.IOException;
 
@@ -11,7 +12,9 @@ public class SoundManager {
 
     private Clip musicClip;
     private static SoundManager instance; // ✅ shared instance
-    private SoundManager() {} // private constructor
+
+    private SoundManager() {
+    } // private constructor
 
     // ✅ Access point for global instance
     public static SoundManager getInstance() {
@@ -40,7 +43,7 @@ public class SoundManager {
 
     // --- Play WAV background music (looped) ---
     public void playMusic(String filePath) {
-       if (musicClip != null && musicClip.isRunning()) {
+        if (musicClip != null && musicClip.isRunning()) {
             return;
         }
 

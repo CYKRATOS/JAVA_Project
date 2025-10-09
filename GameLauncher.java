@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -37,7 +38,7 @@ public class GameLauncher {
     public static void main(String[] args) {
 
         SwingUtilities.invokeLater(() -> {
-                    // Start background music immediately
+            // Start background music immediately
             SoundManager.getInstance().playMusic("E:/JAVA-PROJECT/DevilLevelGame/assets/game_bg.wav");
             // Load custom font
             Font customFont;
@@ -77,8 +78,13 @@ public class GameLauncher {
                         double pr = (double) getWidth() / getHeight();
                         double ir = (double) iw / ih;
                         int dw, dh;
-                        if (pr > ir) { dh = getHeight(); dw = (int) (dh * ir); }
-                        else          { dw = getWidth(); dh = (int) (dw / ir); }
+                        if (pr > ir) {
+                            dh = getHeight();
+                            dw = (int) (dh * ir);
+                        } else {
+                            dw = getWidth();
+                            dh = (int) (dw / ir);
+                        }
                         int x = (getWidth() - dw) / 2;
                         int y = (getHeight() - dh) / 2;
                         g.drawImage(bgImage, x, y, dw, dh, this);
@@ -88,7 +94,7 @@ public class GameLauncher {
 
             loginPanel.setLayout(new GridBagLayout());
             GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(10,10,10,10);
+            gbc.insets = new Insets(10, 10, 10, 10);
 
             // Buttons dimensions
             int buttonWidth = 150;
@@ -103,8 +109,8 @@ public class GameLauncher {
             JPasswordField passwordField = new JPasswordField(9);
             JPasswordField rePasswordField = new JPasswordField(9);
 
-            JTextField[] allFields = { nameField, usernameField, passwordField, rePasswordField };
-            
+            JTextField[] allFields = {nameField, usernameField, passwordField, rePasswordField};
+
             for (JTextField f : allFields) {
                 f.setFont(customFont.deriveFont(Font.PLAIN, 16f));
                 f.setOpaque(false);
@@ -119,10 +125,15 @@ public class GameLauncher {
             addPlaceholder(passwordField, "Password");
             addPlaceholder(rePasswordField, "Re-enter again");
 
-            gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-            loginPanel.add(nameField, gbc); gbc.gridy++;
-            loginPanel.add(usernameField, gbc); gbc.gridy++;
-            loginPanel.add(passwordField, gbc); gbc.gridy++;
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.gridwidth = 2;
+            loginPanel.add(nameField, gbc);
+            gbc.gridy++;
+            loginPanel.add(usernameField, gbc);
+            gbc.gridy++;
+            loginPanel.add(passwordField, gbc);
+            gbc.gridy++;
             loginPanel.add(rePasswordField, gbc);
 
             JLabel messageLabel = new JLabel("");
@@ -151,9 +162,11 @@ public class GameLauncher {
             submitButton.setPreferredSize(new java.awt.Dimension(buttonWidth, buttonHeight)); // added
             cancelButton.setPreferredSize(new java.awt.Dimension(buttonWidth, buttonHeight)); // added
 
-            gbc.gridy++; gbc.gridwidth = 2; gbc.gridx = 0;
+            gbc.gridy++;
+            gbc.gridwidth = 2;
+            gbc.gridx = 0;
             loginPanel.add(signInButton, gbc);
-            gbc.gridy++;    
+            gbc.gridy++;
             loginPanel.add(signUpButton, gbc);
             gbc.gridy++;
             loginPanel.add(submitButton, gbc);
@@ -176,69 +189,74 @@ public class GameLauncher {
                     messageLabel.setVisible(false);
                 }
             };
-            for (JTextField f : allFields) f.addKeyListener(hideMsg);
+            for (JTextField f : allFields) {
+                f.addKeyListener(hideMsg);
+            }
 
             // --- SignIn ---
             signInButton.addActionListener(e -> {
-    if (!usernameField.isVisible()) {
-        // First click → just show the fields
-        usernameField.setVisible(true);
-        passwordField.setVisible(true);
-        loginPanel.revalidate();
-        loginPanel.repaint();
-    } else {
-        // Second click → fields visible, perform login
-        String username = usernameField.getText().trim();
-        String password = new String(passwordField.getPassword()).trim();
+                if (!usernameField.isVisible()) {
+                    // First click → just show the fields
+                    usernameField.setVisible(true);
+                    passwordField.setVisible(true);
+                    loginPanel.revalidate();
+                    loginPanel.repaint();
+                } else {
+                    // Second click → fields visible, perform login
+                    String username = usernameField.getText().trim();
+                    String password = new String(passwordField.getPassword()).trim();
 
-        if (isEmptyOrPlaceholder(usernameField) || isEmptyOrPlaceholder(passwordField)) {
-            messageLabel.setForeground(Color.RED);
-            messageLabel.setText("Username and Password cannot be empty!");
-            messageLabel.setVisible(true);
-            return;
-        }
+                    if (isEmptyOrPlaceholder(usernameField) || isEmptyOrPlaceholder(passwordField)) {
+                        messageLabel.setForeground(Color.RED);
+                        messageLabel.setText("Username and Password cannot be empty!");
+                        messageLabel.setVisible(true);
+                        return;
+                    }
 
-        Player player = PlayerDAO.login(username, password);
-if (player != null) {
-    frame.getContentPane().removeAll();
-    frame.add(new HomeMenuPanel(frame, player)); // ✅ pass the Player object
-    frame.revalidate();
-    frame.repaint();
-}else {
-            messageLabel.setForeground(Color.RED);
-            messageLabel.setText("Invalid credentials!");
-            messageLabel.setVisible(true);
-        }
-    }
-});
+                    Player player = PlayerDAO.login(username, password);
+                    if (player != null) {
+                        frame.getContentPane().removeAll();
+                        frame.add(new HomeMenuPanel(frame, player)); // ✅ pass the Player object
+                        frame.revalidate();
+                        frame.repaint();
+                    } else {
+                        messageLabel.setForeground(Color.RED);
+                        messageLabel.setText("Invalid credentials!");
+                        messageLabel.setVisible(true);
+                    }
+                }
+            });
             signUpButton.addActionListener(e -> {
-    messageLabel.setText(""); 
-    messageLabel.setVisible(false);
+                messageLabel.setText("");
+                messageLabel.setVisible(false);
 
-    // Show all 4 fields for Sign Up
-    nameField.setVisible(true);
-    usernameField.setVisible(true);
-    passwordField.setVisible(true);
-    rePasswordField.setVisible(true);
+                // Show all 4 fields for Sign Up
+                nameField.setVisible(true);
+                usernameField.setVisible(true);
+                passwordField.setVisible(true);
+                rePasswordField.setVisible(true);
 
-    submitButton.setVisible(true);
-    cancelButton.setVisible(true);
-    signInButton.setVisible(false);
-    signUpButton.setVisible(false);
+                submitButton.setVisible(true);
+                cancelButton.setVisible(true);
+                signInButton.setVisible(false);
+                signUpButton.setVisible(false);
 
-    // Reset all fields to placeholder
-    for (JTextField f : allFields) resetField(f);
+                // Reset all fields to placeholder
+                for (JTextField f : allFields) {
+                    resetField(f);
+                }
 
-    loginPanel.revalidate();
-    loginPanel.repaint();
-});
+                loginPanel.revalidate();
+                loginPanel.repaint();
+            });
 
             // --- Submit SignUp ---
             submitButton.addActionListener(e -> {
-                messageLabel.setText(""); messageLabel.setVisible(false);
+                messageLabel.setText("");
+                messageLabel.setVisible(false);
 
-                if (isEmptyOrPlaceholder(nameField) || isEmptyOrPlaceholder(usernameField) ||
-                        isEmptyOrPlaceholder(passwordField) || isEmptyOrPlaceholder(rePasswordField)) {
+                if (isEmptyOrPlaceholder(nameField) || isEmptyOrPlaceholder(usernameField)
+                        || isEmptyOrPlaceholder(passwordField) || isEmptyOrPlaceholder(rePasswordField)) {
                     messageLabel.setForeground(Color.RED);
                     messageLabel.setText("All fields are required!");
                     messageLabel.setVisible(true);
@@ -286,7 +304,8 @@ if (player != null) {
 
             // --- Cancel SignUp ---
             cancelButton.addActionListener(e -> {
-                messageLabel.setText(""); messageLabel.setVisible(false);
+                messageLabel.setText("");
+                messageLabel.setVisible(false);
                 resetToLogin(nameField, usernameField, passwordField, rePasswordField,
                         messageLabel, signInButton, signUpButton, submitButton, cancelButton);
             });
@@ -304,7 +323,9 @@ if (player != null) {
                 if (field.getText().equals(placeholders.get(field))) {
                     field.setText("");
                     field.setForeground(Color.WHITE);
-                    if (field instanceof JPasswordField jPasswordField) jPasswordField.setEchoChar('\u2022');
+                    if (field instanceof JPasswordField jPasswordField) {
+                        jPasswordField.setEchoChar('\u2022');
+                    }
                 }
             }
 
@@ -321,7 +342,9 @@ if (player != null) {
         String placeholder = placeholders.getOrDefault(field, "");
         field.setText(placeholder);
         field.setForeground(new Color(0, 191, 255));
-        if (field instanceof JPasswordField jPasswordField) jPasswordField.setEchoChar((char) 0);
+        if (field instanceof JPasswordField jPasswordField) {
+            jPasswordField.setEchoChar((char) 0);
+        }
     }
 
     private static boolean isEmptyOrPlaceholder(JTextField field) {
@@ -335,10 +358,10 @@ if (player != null) {
     }
 
     private static void resetToLogin(JTextField nameField, JTextField usernameField,
-                                     JPasswordField passwordField, JPasswordField rePasswordField,
-                                     JLabel messageLabel, JButton signInButton, JButton signUpButton,
-                                     JButton submitButton, JButton cancelButton) {
-        for (JTextField f : new JTextField[]{ nameField, usernameField, passwordField, rePasswordField }) {
+            JPasswordField passwordField, JPasswordField rePasswordField,
+            JLabel messageLabel, JButton signInButton, JButton signUpButton,
+            JButton submitButton, JButton cancelButton) {
+        for (JTextField f : new JTextField[]{nameField, usernameField, passwordField, rePasswordField}) {
             resetField(f);
             f.setVisible(false); // hide fields
         }
@@ -349,7 +372,8 @@ if (player != null) {
         cancelButton.setVisible(false);
         signInButton.setVisible(true);
         signUpButton.setVisible(true);
-        messageLabel.setText(""); messageLabel.setVisible(false);
+        messageLabel.setText("");
+        messageLabel.setVisible(false);
 
         nameField.getParent().revalidate();
         nameField.getParent().repaint();

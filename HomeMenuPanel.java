@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -21,10 +22,11 @@ import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
 public class HomeMenuPanel extends JPanel {
+
     private final Player player;
     private Image bgImage;
     private static boolean splashPlayed = false;
-    
+
     // Constructor
     public HomeMenuPanel(JFrame frame, Player player) {
         this.player = player; // save player object
@@ -39,7 +41,7 @@ public class HomeMenuPanel extends JPanel {
             splashPanel.setBackground(Color.BLACK);
 
             JLabel gifLabel = new JLabel(new ImageIcon(
-                    "E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro1.1.gif"));
+                    "E:/JAVA-PROJECT/DevilLevelGame/assets/videos/Intro.gif"));
             gifLabel.setBounds(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width,
                     Toolkit.getDefaultToolkit().getScreenSize().height);
             splashPanel.add(gifLabel);
@@ -51,7 +53,7 @@ public class HomeMenuPanel extends JPanel {
             repaint();
 
             // --- Timer to remove splash after 8 seconds ---
-            Timer splashTimer = new Timer(8000, e -> { 
+            Timer splashTimer = new Timer(8000, e -> {
                 remove(splashPanel);
                 ((Timer) e.getSource()).stop();
                 initHomeMenu(frame);
@@ -76,8 +78,9 @@ public class HomeMenuPanel extends JPanel {
         Font customFont = new Font("Serif", Font.BOLD, 40);
         try {
             File fontFile = new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Orbitron-Regular.ttf");
-            if (!fontFile.exists())
+            if (!fontFile.exists()) {
                 fontFile = new File("E:/JAVA-PROJECT/DevilLevelGame/assets/fonts/Orbitron-Black.ttf");
+            }
             if (fontFile.exists()) {
                 customFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(customFont);
@@ -102,7 +105,7 @@ public class HomeMenuPanel extends JPanel {
         // Title label
         JLabel title = new JLabel(
                 "<html><span style='color: #007BFF;'>ENIGMA</span> - "
-                        + "<span style='color: #007BFF;'>Welcome " + escapeHtml(player.getUsername()) + "</span></html>",
+                + "<span style='color: #007BFF;'>Welcome " + escapeHtml(player.getUsername()) + "</span></html>",
                 SwingConstants.CENTER);
         title.setFont(customFont.deriveFont(Font.BOLD, 60f));
         title.setBounds(0, 80, panelWidth, 100);
@@ -231,17 +234,19 @@ public class HomeMenuPanel extends JPanel {
     }
 
     private static String escapeHtml(String s) {
-        if (s == null) return "";
+        if (s == null) {
+            return "";
+        }
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     // 🎵 Background music functions
     private void playBackgroundMusic() {
-    SoundManager.getInstance().playMusic("E:/JAVA-PROJECT/DevilLevelGame/assets/game_bg.wav");
-}
+        SoundManager.getInstance().playMusic("E:/JAVA-PROJECT/DevilLevelGame/assets/game_bg.wav");
+    }
 
     private void stopBackgroundMusic() {
-    SoundManager.getInstance().stopMusic();
-}
+        SoundManager.getInstance().stopMusic();
+    }
 
 }

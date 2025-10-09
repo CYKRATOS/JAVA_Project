@@ -1,9 +1,11 @@
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
 public class Spike {
+
     private int velX = 0, velY = 0;
     private final Rectangle rect;
     private final int startX, startY;
@@ -16,9 +18,6 @@ public class Spike {
 
     private int triggerDistance = 200;        // default trigger distance
     private Color spikeColor = new Color(180, 50, 50); // realistic reddish metallic
-
-    // -----------------------
-    // Level 6 sliding fields
     private boolean sliding = false;
     private int slideDistance = 0;
     private int slidSoFar = 0;
@@ -26,7 +25,6 @@ public class Spike {
     // -----------------------
     // Constructors
     // -----------------------
-
     // Stationary spike
     public Spike(int x, int y, int width, int height) {
         this.rect = new Rectangle(x, y, width, height);
@@ -146,15 +144,15 @@ public class Spike {
         g2.fillRect(rect.x, rect.y + spikeHeight / 2, spikeWidth, spikeHeight / 2);
 
         // Pointed tip (triangle)
-        int[] xPoints = { rect.x, rect.x + spikeWidth / 2, rect.x + spikeWidth };
-        int[] yPoints = { rect.y + spikeHeight / 2, rect.y, rect.y + spikeHeight / 2 };
+        int[] xPoints = {rect.x, rect.x + spikeWidth / 2, rect.x + spikeWidth};
+        int[] yPoints = {rect.y + spikeHeight / 2, rect.y, rect.y + spikeHeight / 2};
         g2.setColor(spikeColor);
         g2.fillPolygon(xPoints, yPoints, 3);
 
         // Optional highlight for 3D effect
         g2.setColor(new Color(255, 200, 200, 180));
-        int[] highlightX = { rect.x + spikeWidth / 4, rect.x + spikeWidth / 2, rect.x + 3 * spikeWidth / 4 };
-        int[] highlightY = { rect.y + spikeHeight / 2, rect.y + spikeHeight / 4, rect.y + spikeHeight / 2 };
+        int[] highlightX = {rect.x + spikeWidth / 4, rect.x + spikeWidth / 2, rect.x + 3 * spikeWidth / 4};
+        int[] highlightY = {rect.y + spikeHeight / 2, rect.y + spikeHeight / 4, rect.y + spikeHeight / 2};
         g2.fillPolygon(highlightX, highlightY, 3);
     }
 }
