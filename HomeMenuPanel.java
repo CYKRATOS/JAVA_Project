@@ -134,7 +134,7 @@ public class HomeMenuPanel extends JPanel {
             JButton levelButton = createGlassButton("Level " + i, buttonFont);
 
             // Disable locked levels
-            if (i != 1 && i > player.getLevelCleared() + 1) {
+            if (i != 1 && i > player.getLevelCleared()) {
                 levelButton.setEnabled(false);
             }
 
